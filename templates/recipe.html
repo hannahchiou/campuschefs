@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <meta name=author content="Hannah Chiou">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recipe Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F9F6ef;
+            color: #282828;
+            font-family: 'Work Sans', sans-serif;
+            font-size: large;
+            line-height: 150%;
+        }
+        h1{
+            font-size: 55px;
+            font-weight: bold;
+            color: #193497;
+            margin-right: 150px;
+            margin-left: 80px;
+            margin-top: 1em;
+        }
+        h2{
+            color: #0077b6;
+            font-style: italic;
+            font-size: larger;
+            margin-right: 150px;
+            margin-left: 80px;
+        }
+        p{
+            font-style: normal;
+            margin-right: 250px;
+            margin-left: 80px;
+        }
+        footer {
+            background-color: #193497; 
+            color: #F9F6ef; 
+            padding: 20px 0;
+            text-align: center; 
+        }
+        #iconlist {
+            list-style-type: none; 
+            padding: 0; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+        }
+        #iconlist li {
+            display: inline; 
+        }
+        #iconlist img {
+            vertical-align: middle;     
+        }
+        .footer-content p {
+            margin: 5px 0; 
+            font-size: 14px; 
+            color: #F9F6ef;
+        }
+        table {
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-left: 70px;
+        }
+        td {
+            padding: 10px; 
+            vertical-align: top;
+        }
+        label {
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            margin-left: 80px;
+        }
+        select, input[type="text"], input[type="number"] {
+            width: 50%; 
+            padding: 8px; 
+            border: 1px solid #ccc;
+            border-radius: 4px; 
+            font-size: 16px;
+            margin-left: 80px;
+        }
+        textarea{
+            width: 50%; 
+            height: 200px;
+            padding: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 16px; 
+            margin-left: 80px; 
+            resize: vertical;
+        }
+        .radio-group label {
+            margin-left: 80px;
+            margin-right: 20px; 
+            display: inline-block;
+            vertical-align: middle; 
+        }
+        .radio-group input[type="radio"] {
+        margin-right: 5px; 
+        }
+        .tags-group select {
+            margin-top: 5px;
+            width: 50%; 
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1> 🥘 CampusChefs Recipe Post 🥘 </h1>
+<h2> Please fill in all forms to post your new recipe to CampusChefs. </h2>
+<p> An important part of my group's final project, CampusChefs, is the ability to <b>post your recipes</b> for other college students to try out and enjoy. This form is an example of what a new recipe post might look like for a user. </p>
+
+<section>
+<h2> New recipe </h2>
+
+<form id="recipe-form" method="post" action="https://cs.wellesley.edu/~cs304flask/cgi-bin/dump.cgi">
+
+<label for="title"> Recipe title</label>
+<input type="text" id="title" name="title" placeholder="Enter a short recipe title" required>
+
+<label for="size"> Serving size</label>
+<select id = 'size' name = 'size' required>
+    <option value = ""> select </option>
+    <option value = "1"> 1 </option> 
+    <option value = "2"> 2 </option> 
+    <option value = "3"> 3 </option> 
+    <option value = "4"> 4 </option> 
+    <option value = "5"> 5 </option> 
+    <option value = "6"> 6 </option> 
+    <option value = "7"> 7 </option> 
+    <option value = "8"> 8 </option> 
+    <option value = "9+"> 9+ </option> 
+</select>
+
+<p> <b>Ingredients and Measurements </b></p>
+<table>
+        <tr>
+            <td>
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity[]" placeholder="Enter quantity" required>
+            </td>
+            <td>
+                <label for="measurement1">Select Measurement:</label>
+                <input type="text" id="measurement1" name="measurement" placeholder="Enter measurement here" required>
+            </td>
+            <td>
+                <label for="ingredient">Ingredient:</label>
+                <input type="text" id="ingredient" name="ingredient[]" placeholder="Enter ingredient here" required>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="quantity2">Quantity:</label>
+                <input type="number" id="quantity2" name="quantity[]" placeholder="Enter quantity" required>
+            </td>
+            <td>
+                <label for="measurement2">Select Measurement:</label>
+                <input type="text" id="measurement2" name="measurement" placeholder="Enter measurement here" required>
+            </td>
+            <td>
+                <label for="ingredient2">Ingredient:</label>
+                <input type="text" id="ingredient2" name="ingredient[]" placeholder="Enter ingredient here" required>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="quantity3">Quantity:</label>
+                <input type="number" id="quantity3" name="quantity[]" placeholder="Enter quantity" required>
+            </td>
+            <td>
+                <label for="measurement3">Select Measurement:</label>
+                <input type="text" id="measurement3" name="measurement" placeholder="Enter measurement here" required>
+            </td>
+            <td>
+                <label for="ingredient3">Ingredient:</label>
+                <input type="text" id="ingredient3" name="ingredient[]" placeholder="Enter ingredient here" required>
+            </td>
+        </tr>
+    </table>
+
+<label for="steps"> Recipe steps</label>
+<textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!"></textarea>
+
+<label for="tags"> Tags</label>
+<div class="radio-group">
+    <p><b> Select the price of the recipe:</b></p>
+    <label>
+        <input type="radio" name="price" value="low" required> $
+    </label>
+    <label>
+        <input type="radio" name="price" value="medium"> $$
+    </label>
+    <label>
+        <input type="radio" name="price" value="high"> $$$
+    </label>
+</div>
+
+<div class="tags-group">
+    <p id="tagsLabel"><b> Describe your recipe: </b> </p>
+    <p id="tagsHelp"><i>Press command to select multiple tags.</i></p>
+    <select id="tags" name="tags[]" multiple aria-labelledby="tagsLabel" aria-describedby="tagsHelp">
+        <option value="vegan">Vegan</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="gluten-free">Gluten-Free</option>
+        <option value="dairy-free">Dairy-Free</option>
+        <option value="nut-free">Nut-Free</option>
+        <option value="quick">Quick Meal</option>
+        <option value="meal-prep">Meal Prep</option>
+        <option value="comfort-food">Comfort Food</option>
+        <option value="breakfast">Breakfast</option>
+        <option value="brunch">Brunch</option>
+        <option value="lunch-dinner">Lunch / Dinner</option>
+        <option value="snack">Snacks</option>
+    </select>
+</div>
+
+<p><input type="submit" value="Submit recipe!"> </p>
+
+</form>
+</section>
+
+</body>
+</html>
