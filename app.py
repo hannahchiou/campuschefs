@@ -60,7 +60,7 @@ def formecho():
                                method=request.method,
                                form_data=request.form)
     else:
-        raise Exception('this cannot happen')
+        raise Exception('this cannot happen')  
 
 # This route shows how to render a page with a form on it.
 
@@ -70,6 +70,9 @@ def testform():
     return render_template('testform.html',
                            page_title='Page with two Forms')
 
+@app.route('/recipeform/')
+def recipeform():
+    return render_template('recipeform.html')
 
 if __name__ == '__main__':
     import sys, os
