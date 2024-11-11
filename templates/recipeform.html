@@ -142,6 +142,15 @@
     <option value = "9+"> 9+ </option> 
 </select>
 
+<!-- TO DO: Automatically add total time using user's entered prep and cook time --> 
+
+<label for="prep-time">Prep Time:</label>
+<input type="number" id="prep-time" name="prep-time" placeholder="Enter prep time" required>
+
+<label for="prep-time">Cook Time:</label>
+<input type="number" id="cook-time" name="cook-time" placeholder="Enter cook time" required>
+
+<!-- TO DO: Dynamically add rows using JS -->
 <p> <b>Ingredients and Measurements </b></p>
 <table>
         <tr>
@@ -151,7 +160,7 @@
             </td>
             <td>
                 <label for="measurement1">Select Measurement:</label>
-                <input type="text" id="measurement1" name="measurement" placeholder="Enter measurement here" required>
+                <input type="text" id="measurement1" name="measurement" placeholder="Enter measurement here">
             </td>
             <td>
                 <label for="ingredient">Ingredient:</label>
@@ -165,7 +174,7 @@
             </td>
             <td>
                 <label for="measurement2">Select Measurement:</label>
-                <input type="text" id="measurement2" name="measurement" placeholder="Enter measurement here" required>
+                <input type="text" id="measurement2" name="measurement" placeholder="Enter measurement here">
             </td>
             <td>
                 <label for="ingredient2">Ingredient:</label>
@@ -179,7 +188,7 @@
             </td>
             <td>
                 <label for="measurement3">Select Measurement:</label>
-                <input type="text" id="measurement3" name="measurement" placeholder="Enter measurement here" required>
+                <input type="text" id="measurement3" name="measurement" placeholder="Enter measurement here">
             </td>
             <td>
                 <label for="ingredient3">Ingredient:</label>
