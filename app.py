@@ -70,9 +70,15 @@ def testform():
     return render_template('testform.html',
                            page_title='Page with two Forms')
 
-@app.route('/recipeform/')
+import datetime
+
+@app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
-    return render_template('recipeform.html')
+    if request.method == 'GET':
+        return render_template('recipeform.html')
+    if request.method == 'POST':
+        time =  datetime.now()
+        
 
 if __name__ == '__main__':
     import sys, os

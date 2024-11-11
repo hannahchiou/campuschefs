@@ -128,6 +128,13 @@
 <label for="title"> Recipe title</label>
 <input type="text" id="title" name="title" placeholder="Enter a short recipe title" required>
 
+<!-- TO DO: only certain file types allowed (jpeg, jpg, pdf)-->
+<!-- TO DO: only certain sizes / resolutions of images allowed (eg. 1024px x 2000px)-->
+<p><b>Upload a cover photo: </b>
+    <form method="post" action="" enctype="multipart/form-data">
+        <p><label>Pic: <input type="file" name="pic" required></label></p>
+    </form>
+
 <label for="size"> Serving size</label>
 <select id = 'size' name = 'size' required>
     <option value = ""> select </option>
@@ -232,6 +239,12 @@
         <option value="snack">Snacks</option>
     </select>
 </div>
+
+<form action=" ">
+    <label for="files">Select photos:</label>
+    <input type="file" id="files" name="files" multiple><br><br>
+    <input type="submit">
+  </form>
 
 <p><input type="submit" value="Submit recipe!"> </p>
 
