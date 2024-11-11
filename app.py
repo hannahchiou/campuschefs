@@ -83,8 +83,8 @@ if __name__ == '__main__':
     else:
         port = os.getuid()
     # set this local variable to 'wmdb' or your personal or team db
-    db_to_use = 'put_database_name_here_db' 
-    print(f'will connect to {db_to_use}')
-    dbi.conf(db_to_use)
+    #db_to_use = cs304dbi 
+   # print(f'will connect to {db_to_use}')
+    #dbi.conf(db_to_use)
     app.debug = True
     app.run('0.0.0.0',port)
