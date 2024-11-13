@@ -70,15 +70,9 @@ def testform():
     return render_template('testform.html',
                            page_title='Page with two Forms')
 
-import datetime
-
-@app.route('/recipeform/', methods = ['GET','POST'])
+@app.route('/recipeform/')
 def recipeform():
-    if request.method == 'GET':
-        return render_template('recipeform.html')
-    if request.method == 'POST':
-        time =  datetime.now()
-        
+    return render_template('recipeform.html')
 
 if __name__ == '__main__':
     import sys, os
@@ -89,8 +83,8 @@ if __name__ == '__main__':
     else:
         port = os.getuid()
     # set this local variable to 'wmdb' or your personal or team db
-    #db_to_use = cs304dbi 
-   # print(f'will connect to {db_to_use}')
-    #dbi.conf(db_to_use)
+    db_to_use = 'put_database_name_here_db' 
+    print(f'will connect to {db_to_use}')
+    dbi.conf(db_to_use)
     app.debug = True
     app.run('0.0.0.0',port)
