@@ -159,7 +159,7 @@
 
 <!-- TO DO: Dynamically add rows using JS -->
 <p> <b>Ingredients and Measurements </b></p>
-<table>
+    <table>
         <tr>
             <td>
                 <label for="quantity">Quantity:</label>
@@ -203,6 +203,16 @@
             </td>
         </tr>
     </table>
+
+<!-- Adding dynamically added rows for the ingredients using jss (ingredients.js) -->
+<button type="btn">Add Row</button>
+<script src="{{url_for('static', filename='ingredients.js')}}"></script>
+
+<script>
+    document.getElementById('btn')
+        .addEventListener( 'click', (e) => addrow(e));
+</script>
+
 
 <label for="steps"> Recipe steps</label>
 <textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!"></textarea>
