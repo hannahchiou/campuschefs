@@ -26,6 +26,36 @@ def index():
 # You will probably not need the routes below, but they are here
 # just in case. Please delete them if you are not using them
 
+@app.route('/discover', methods=['GET'])
+def discover():
+    # Connect to the database
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+
+    # Get search term if any
+    search_term = request.args.get('search', '')
+
+    # Create SQL query with filtering if there's a search term
+    if search_term:
+        query = """
+            select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+            from post p
+            where p.title like %s or p.tags lik %s or p.price like %s
+        """
+        search_pattern = f"%{search_term}%"
+        curs.execute(query, (search_pattern, search_pattern, search_pattern))
+    else:
+        # Get all posts
+        curs.execute("select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price from post p")
+
+    posts = curs.fetchall()
+
+    # Optionally, add pagination here if necessary
+    conn.close()
+
+    return render_template('discover.html', posts=posts)
+
+
 @app.route('/greet/', methods=["GET", "POST"])
 def greet():
     if request.method == 'GET':
@@ -83,7 +113,7 @@ if __name__ == '__main__':
     else:
         port = os.getuid()
     # set this local variable to 'wmdb' or your personal or team db
-    db_to_use = 'put_database_name_here_db' 
+    db_to_use = 'campuschefs_db' 
     print(f'will connect to {db_to_use}')
     dbi.conf(db_to_use)
     app.debug = True
