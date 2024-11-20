@@ -20,11 +20,58 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
-    return render_template('main.html',
+    return render_template('main.html', # put in html for home page
                            page_title='Main Page')
 
+<<<<<<< HEAD
+import datetime
+
+@app.route('/recipeform/', methods = ['GET','POST'])
+def recipeform():
+    if request.method == 'GET':
+        return render_template('recipeform.html')
+    if request.method == 'POST':
+        # TO DO: Flash message if a required field is missing 
+        time =  datetime.now()
+
+# recipe post
+# update recipe form with form filled out. make new html page for update recipe form
+# discover board --> GET render discover board page html, POST search 
+
+        
+=======
 # You will probably not need the routes below, but they are here
 # just in case. Please delete them if you are not using them
+
+@app.route('/discover', methods=['GET'])
+def discover():
+    # Connect to the database
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+
+    # Get search term if any
+    search_term = request.args.get('search', '')
+
+    # Create SQL query with filtering if there's a search term
+    if search_term:
+        query = """
+            select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+            from post p
+            where p.title like %s or p.tags lik %s or p.price like %s
+        """
+        search_pattern = f"%{search_term}%"
+        curs.execute(query, (search_pattern, search_pattern, search_pattern))
+    else:
+        # Get all posts
+        curs.execute("select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price from post p")
+
+    posts = curs.fetchall()
+
+    # Optionally, add pagination here if necessary
+    conn.close()
+
+    return render_template('discover.html', posts=posts)
+
 
 @app.route('/greet/', methods=["GET", "POST"])
 def greet():
@@ -73,6 +120,7 @@ def testform():
 @app.route('/recipeform/')
 def recipeform():
     return render_template('recipeform.html')
+>>>>>>> 9dd9f432c7f014c8a50718105f8dbafdc9fd38e9
 
 if __name__ == '__main__':
     import sys, os
