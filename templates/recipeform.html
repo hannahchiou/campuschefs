@@ -5,114 +5,15 @@
     <meta name=author content="Hannah Chiou">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Recipe Form</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #F9F6ef;
-            color: #282828;
-            font-family: 'Work Sans', sans-serif;
-            font-size: large;
-            line-height: 150%;
-        }
-        h1{
-            font-size: 55px;
-            font-weight: bold;
-            color: #193497;
-            margin-right: 150px;
-            margin-left: 80px;
-            margin-top: 1em;
-        }
-        h2{
-            color: #0077b6;
-            font-style: italic;
-            font-size: larger;
-            margin-right: 150px;
-            margin-left: 80px;
-        }
-        p{
-            font-style: normal;
-            margin-right: 250px;
-            margin-left: 80px;
-        }
-        footer {
-            background-color: #193497; 
-            color: #F9F6ef; 
-            padding: 20px 0;
-            text-align: center; 
-        }
-        #iconlist {
-            list-style-type: none; 
-            padding: 0; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            gap: 20px; 
-        }
-        #iconlist li {
-            display: inline; 
-        }
-        #iconlist img {
-            vertical-align: middle;     
-        }
-        .footer-content p {
-            margin: 5px 0; 
-            font-size: 14px; 
-            color: #F9F6ef;
-        }
-        table {
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-left: 70px;
-        }
-        td {
-            padding: 10px; 
-            vertical-align: top;
-        }
-        label {
-            display: block; 
-            margin-bottom: 5px; 
-            font-weight: bold; 
-            margin-left: 80px;
-        }
-        select, input[type="text"], input[type="number"] {
-            width: 50%; 
-            padding: 8px; 
-            border: 1px solid #ccc;
-            border-radius: 4px; 
-            font-size: 16px;
-            margin-left: 80px;
-        }
-        textarea{
-            width: 50%; 
-            height: 200px;
-            padding: 8px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            font-size: 16px; 
-            margin-left: 80px; 
-            resize: vertical;
-        }
-        .radio-group label {
-            margin-left: 80px;
-            margin-right: 20px; 
-            display: inline-block;
-            vertical-align: middle; 
-        }
-        .radio-group input[type="radio"] {
-        margin-right: 5px; 
-        }
-        .tags-group select {
-            margin-top: 5px;
-            width: 50%; 
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-    </style>
 </head>
+
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<!-- TO DO: Add date when recipe is posted -->
+<!-- TO DO: Save author name and post it when recipe is posted (possibly using cookies? Reserve for later versions or
+ whenever we implement logins.)-->
 
 <body>
 
@@ -132,7 +33,7 @@
 <!-- TO DO: only certain sizes / resolutions of images allowed (eg. 1024px x 2000px)-->
 <p><b>Upload a cover photo: </b>
     <form method="post" action="" enctype="multipart/form-data">
-        <p><label>Pic: <input type="file" name="pic" required></label></p>
+        <p><label>Pic: <input type="file" name="cover-photo" required></label></p>
     </form>
 
 <label for="size"> Serving size</label>
@@ -163,7 +64,7 @@
         <tr>
             <td>
                 <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" name="quantity[]" placeholder="Enter quantity" required>
+                <input type="number" id="quantity" name="quantity" placeholder="Enter quantity" required>
             </td>
             <td>
                 <label for="measurement1">Select Measurement:</label>
@@ -171,13 +72,13 @@
             </td>
             <td>
                 <label for="ingredient">Ingredient:</label>
-                <input type="text" id="ingredient" name="ingredient[]" placeholder="Enter ingredient here" required>
+                <input type="text" id="ingredient" name="ingredient" placeholder="Enter ingredient here" required>
             </td>
         </tr>
         <tr>
             <td>
                 <label for="quantity2">Quantity:</label>
-                <input type="number" id="quantity2" name="quantity[]" placeholder="Enter quantity" required>
+                <input type="number" id="quantity2" name="quantity" placeholder="Enter quantity" required>
             </td>
             <td>
                 <label for="measurement2">Select Measurement:</label>
@@ -185,13 +86,13 @@
             </td>
             <td>
                 <label for="ingredient2">Ingredient:</label>
-                <input type="text" id="ingredient2" name="ingredient[]" placeholder="Enter ingredient here" required>
+                <input type="text" id="ingredient2" name="ingredient" placeholder="Enter ingredient here" required>
             </td>
         </tr>
         <tr>
             <td>
                 <label for="quantity3">Quantity:</label>
-                <input type="number" id="quantity3" name="quantity[]" placeholder="Enter quantity" required>
+                <input type="number" id="quantity3" name="quantity" placeholder="Enter quantity" required>
             </td>
             <td>
                 <label for="measurement3">Select Measurement:</label>
@@ -199,7 +100,7 @@
             </td>
             <td>
                 <label for="ingredient3">Ingredient:</label>
-                <input type="text" id="ingredient3" name="ingredient[]" placeholder="Enter ingredient here" required>
+                <input type="text" id="ingredient3" name="ingredient" placeholder="Enter ingredient here" required>
             </td>
         </tr>
     </table>
@@ -222,7 +123,7 @@
 </div>
 
 <div class="tags-group">
-    <p id="tagsLabel"><b> Describe your recipe: </b> </p>
+    <p id="tagsLabel"><b> Choose tags that apply to your recipe: </b> </p>
     <p id="tagsHelp"><i>Press command to select multiple tags.</i></p>
     <select id="tags" name="tags[]" multiple aria-labelledby="tagsLabel" aria-describedby="tagsHelp">
         <option value="vegan">Vegan</option>
@@ -246,10 +147,15 @@
     <input type="submit">
   </form>
 
+<label for="description"> Description or notes </label>
+<textarea id="description" name="description" placeholder="Enter an optional description or notes and suggestions for other users!"></textarea>
+
 <p><input type="submit" value="Submit recipe!"> </p>
 
 </form>
 </section>
+
+{% endblock %}
 
 </body>
 </html>

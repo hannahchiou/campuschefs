@@ -20,55 +20,8 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
-    return render_template('main.html',
+    return render_template('main.html', # put in html for home page
                            page_title='Main Page')
-
-# You will probably not need the routes below, but they are here
-# just in case. Please delete them if you are not using them
-
-@app.route('/greet/', methods=["GET", "POST"])
-def greet():
-    if request.method == 'GET':
-        return render_template('greet.html',
-                               page_title='Form to collect username')
-    else:
-        try:
-            username = request.form['username'] # throws error if there's trouble
-            flash('form submission successful')
-            return render_template('greet.html',
-                                   page_title='Welcome '+username,
-                                   name=username)
-
-        except Exception as err:
-            flash('form submission error'+str(err))
-            return redirect( url_for('index') )
-
-# This route displays all the data from the submitted form onto the rendered page
-# It's unlikely you will ever need anything like this in your own applications, so
-# you should probably delete this handler
-
-@app.route('/formecho/', methods=['GET','POST'])
-def formecho():
-    if request.method == 'GET':
-        return render_template('form_data.html',
-                               page_title='Display of Form Data',
-                               method=request.method,
-                               form_data=request.args)
-    elif request.method == 'POST':
-        return render_template('form_data.html',
-                               page_title='Display of Form Data',
-                               method=request.method,
-                               form_data=request.form)
-    else:
-        raise Exception('this cannot happen')  
-
-# This route shows how to render a page with a form on it.
-
-@app.route('/testform/')
-def testform():
-    # these forms go to the formecho route
-    return render_template('testform.html',
-                           page_title='Page with two Forms')
 
 import datetime
 
@@ -77,7 +30,13 @@ def recipeform():
     if request.method == 'GET':
         return render_template('recipeform.html')
     if request.method == 'POST':
+        # TO DO: Flash message if a required field is missing 
         time =  datetime.now()
+
+# recipe post
+# update recipe form with form filled out. make new html page for update recipe form
+# discover board --> GET render discover board page html, POST search 
+
         
 
 if __name__ == '__main__':

@@ -1,42 +1,129 @@
 /* the --color-header and others are CSS variables, which we access later. 
 */
 
-HTML {
-    --color-header: #007ea9;  /* color for H1-H6 and others. was deepskyblue but poor contrast. */
-    --color-hilite: #b50000;  /* was red, but this avoids WAVE contrast errors */ 
-    --color-focus: #56B929;
-    --font-family: Verdana;
-    font-family: var(--font-family)
-}
 
 /* For flashed messages; make them stand out using red and italics */
 
 #messages {
-    color: var(--color-hilite);
+    color: red;
     font-style: italic;
 }
 
-
-h1 {
-    font-size: 200%;
-    color: var(--color-header);
+body {
+    background-color: #F9F6ef;
+    color: #282828;
+    font-family: 'Work Sans', sans-serif;
+    font-size: large;
+    line-height: 150%;
 }
-
-h2, h3 {
-    color: var(--color-header);
+h1{
+    font-size: 55px;
+    font-weight: bold;
+    color: #193497;
+    margin-right: 150px;
+    margin-left: 80px;
+    margin-top: 1em;
+}
+h2{
+    color: #0077b6;
+    font-style: italic;
+    font-size: larger;
+    margin-right: 150px;
+    margin-left: 80px;
+}
+p{
+    font-style: normal;
+    margin-right: 250px;
+    margin-left: 80px;
+}
+footer {
+    background-color: #193497; 
+    color: #F9F6ef; 
+    padding: 20px 0;
+    text-align: center; 
+}
+#iconlist {
+    list-style-type: none; 
+    padding: 0; 
+    margin: 0; 
+    display: flex; 
+    justify-content: center; 
+    gap: 20px; 
+}
+#iconlist li {
+    display: inline; 
+}
+#iconlist img {
+    vertical-align: middle;     
+}
+.footer-content p {
+    margin: 5px 0; 
+    font-size: 14px; 
+    color: #F9F6ef;
+}
+table {
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-left: 70px;
+}
+td {
+    padding: 10px; 
+    vertical-align: top;
+}
+label {
+    display: block; 
+    margin-bottom: 5px; 
+    font-weight: bold; 
+    margin-left: 80px;
+}
+select, input[type="text"], input[type="number"] {
+    width: 50%; 
+    padding: 8px; 
+    border: 1px solid #ccc;
+    border-radius: 4px; 
+    font-size: 16px;
+    margin-left: 80px;
+}
+textarea{
+    width: 50%; 
+    height: 200px;
+    padding: 8px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px; 
+    margin-left: 80px; 
+    resize: vertical;
+}
+.radio-group label {
+    margin-left: 80px;
+    margin-right: 20px; 
+    display: inline-block;
+    vertical-align: middle; 
+}
+.radio-group input[type="radio"] {
+margin-right: 5px; 
+}
+.tags-group select {
+    margin-top: 5px;
+    width: 50%; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
 }
     
-
 /* for a simple navbar. Talk to Scott if you want drop-downs. */
 nav > ul {
     display: flex;
     flex-direction: row;
+    text-align: center;
 }
 
 nav ul {
     list-style-type: none;
     margin: 0px;
     padding: 0px;
+    text-align: center;
 }
 
 nav > ul > li {

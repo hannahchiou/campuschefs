@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<!-- TO DO: Cover photo will go here -->
+
+<h1> {{title}} </h1>
+<p> <b> {{author}} </b> </p>
+<p> <b> {{date}} </b> </p> <!-- using Python servertime module -->
+
+<p> <b> Total time: </b>{{total-time}} </p>
+<p> <b> Prep time: </b> {{prep-time}} </p>
+<p> <b> Cook time: </b>{{cook-time}} </p>
+
+<p><b> Price: </b> {{price}} </p>
+<p> <b> Tags: </b> {{tags}} </p>
+
+<p> <b> Description / notes: </b> {{description}} </p>
+
+<p> <b> Ingredients: </b></p>
+<p> <i> Serves: {{size}} people </i></p>
+<p> <!-- Have to figure out how to change based on whether or not there is a quantity given --> </p>
+
+<p> <b> Steps: </b></p>
+<p> {{steps}} </p>
+
+{% endblock %}
