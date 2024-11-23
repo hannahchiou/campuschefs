@@ -1,9 +1,14 @@
 use campuschefs_db;
 
 -- Drop the tables in the correct order
-drop table if exists post;
+drop table if exists conversation;
+drop table if exists comment;
 drop table if exists images;
+drop table if exists board;
+drop table if exists post;
+drop table if exists follow;
 drop table if exists user;
+drop table if exists test;
 
 create table user (
     uid int auto_increment primary key,

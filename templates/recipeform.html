@@ -55,13 +55,17 @@
 <label for="prep-time">Prep Time:</label>
 <input type="number" id="prep-time" name="prep-time" placeholder="Enter prep time" required>
 
-<label for="prep-time">Cook Time:</label>
+<label for="cook-time">Cook Time:</label>
 <input type="number" id="cook-time" name="cook-time" placeholder="Enter cook time" required>
 
 <!-- TO DO: Dynamically add rows using JS -->
 <p> <b>Ingredients and Measurements </b></p>
+<<<<<<< HEAD
 <table>
         <!-- Row 1 -->
+=======
+    <table>
+>>>>>>> b2ccfd2fd2e180cbed70107a1a3bde32b6d45e02
         <tr>
             <td>
                 <label for="quantity1">Quantity:</label>
@@ -107,6 +111,16 @@
             </td>
         </tr>
     </table>
+
+<!-- Adding dynamically added rows for the ingredients using jss (ingredients.js) -->
+<button type="btn">Add Row</button>
+<script src="{{url_for('static', filename='ingredients.js')}}"></script>
+
+<script>
+    document.getElementById('btn')
+        .addEventListener( 'click', (e) => addrow(e));
+</script>
+
 
 <label for="steps"> Recipe steps</label>
 <textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!" required></textarea>
