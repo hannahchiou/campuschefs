@@ -56,7 +56,7 @@ def discover():
         query = """
             select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
             from post as p
-            where p.title like %s or p.tags lik %s or p.price like %s
+            where p.title like %s or p.tags like %s or p.price like %s
         """
         search_pattern = f"%{search_term}%"
         curs.execute(query, (search_pattern, search_pattern, search_pattern))
