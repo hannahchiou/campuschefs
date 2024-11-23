@@ -2,15 +2,16 @@
 import cs304dbi as dbi
 
 # inserts a new recipe into the database
-def insertRecipe(conn, uid, title, cover_photo, serving_size, 
-                 prep_time, cook_time, text_descrip, steps, tags, price):
+def insertRecipe(conn, uid, date, title, cover_photo, serving_size, 
+                 prep_time, cook_time, total_time, text_descrip, steps, tags, price):
     curs = dbi.cursor(conn)
-    curs.execute('''insert into post(uid, title, cover_photo, serving_size, prep_time, 
-                 cook_time, text_descrip, steps, tags, price)
-                 values (%s,%s,%s,%s,%s,%s,%s)''',
-                 [uid,title,cover_photo,serving_size,prep_time,cook_time,
+    curs.execute('''insert into post(uid, date, title, cover_photo, serving_size, prep_time, 
+                 cook_time, total_time, text_descrip, steps, tags, price)
+                 values (%s,%s,%s,%s,%s,%s,%s,%s, %s)''',
+                 [uid,date,title,cover_photo,serving_size,prep_time,cook_time,total_time,
                     text_descrip, steps, tags, price])
     conn.commit()
+    return curs.lastrowid
 
 # insert the ingredients for the recipe
 def insertIngredients(conn, pid, name, quantity, measurement):

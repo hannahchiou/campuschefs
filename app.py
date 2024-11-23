@@ -48,6 +48,8 @@ def allowed_file(filename):
 
 @app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
+    conn = dbi.connect()
+
     if request.method == 'GET':
         return render_template('recipeform.html')
     
@@ -66,7 +68,7 @@ def recipeform():
         # Get the current date and time
         now = datetime.now()
         # Format it into 'month-day-year'
-        date = now.strftime("%m-%d-%Y")
+        post_date = now.strftime("%m-%d-%Y")
 
          # Collect ingredients
         ingredients = []
@@ -85,33 +87,49 @@ def recipeform():
             })
             index += 1
 
-            file = request.files.get('cover-photo')
-            photo_url = None
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                photo_url = url_for('static', filename=f'uploads/{filename}')
+        file = request.files.get('cover-photo')
+        photo_url = None
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            photo_url = url_for('static', filename=f'uploads/{filename}')
 
-        #helper.insertRecipe
+        # get the post id
+        last_insert = helper.insertRecipe(conn, 
+                            uid = request.cookies.get('uid'), 
+                            date = post_date,
+                            title = title,
+                            cover_photo = photo_url,
+                            serving_size = size,
+                            prep_time = prep_time,
+                            cook_time = cook_time,
+                            total_time = total_time,
+                            text_descrip = description,
+                            steps = steps,
+                            tags = tags,
+                            price = price)
+        
+        print(last_insert)
+        
+        index = 0
+        while True:
+            # Dynamically access each row of ingredients
+            quantity = request.form.get(f'ingredients[{index}][quantity]')
+            measurement = request.form.get(f'ingredients[{index}][measurement]')
+            name = request.form.get(f'ingredients[{index}][name]')
+            if not name:  # Stop when no more ingredient names are provided
+                break
+            helper.insertIngredients(conn, 
+                                pid = last_insert,
+                                name = name,
+                                quantity = quantity,
+                                measurement = measurement)
+            index += 1
+
+        # redirect to recipe/post_id
+        return redirect(url_for('recipepost', post_id = last_insert))
     
-        return render_template(
-                    'recipepost.html',
-                    title=title,
-                    date=date,
-                    prep_time=prep_time,
-                    cook_time=cook_time,
-                    total_time=total_time,
-                    price=price,
-                    size=size,
-                    tags=tags,
-                    description=description,
-                    steps=steps,
-                    ingredients=ingredients,
-                    photo_url=photo_url
-                )
-
-
 # recipe post
 @app.route('/recipepost/<post_id>', methods = ['GET'])
 def recipepost(post_id):
