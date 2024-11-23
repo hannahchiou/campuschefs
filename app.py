@@ -85,14 +85,27 @@ def recipepost(post_id):
     if request.method == 'GET':
         return render_template('recipepost.html')
     
-@app.route('/select/<string:filter> <string:specific_tag> ', methods=['GET', 'POST'])
+@app.route('/select/<string:filter>/<string:specific_tag> ', methods=['GET', 'POST'])
 def select():
     conn1 = dbi.connect()
     curs = dbi.dict_cursor(conn1)
     if request.method == 'POST':
         selected_filter = request.form.get('filter-type')
-        if selected_filter == "Season":
-            print('season and tag // ignore this for now')
+        selected_value = None
+
+        if selected_filter == "season":
+            selected_value = request.form.get('season')
+            return redirect(url_for('main.html'))
+        
+        elif selected_filter == "course":
+            selected_value = request.form.get('course')
+            
+        elif selected_filter == "dietary":
+            selected_value = request.form.get('dietary')
+            
+        elif selected_filter == "convenience":
+            selected_value = request.form.get('convenience')
+
 
         
 
