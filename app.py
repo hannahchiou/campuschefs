@@ -87,7 +87,7 @@ def recipepost(post_id):
 
 # TO DO: update recipe form with form filled out. make new html page for update recipe form
 # route here
-@app.route('/updatepost/<post_id',methods = ['GET','POST'])
+# @app.route('/updatepost/<post_id',methods = ['GET','POST'])
 
 # TO DO: discover board --> GET render discover board page html, POST search         
 @app.route('/discover', methods=['GET'])
@@ -118,8 +118,6 @@ def discover():
     conn.close()
 
     return render_template('discover.html', posts=posts)
-
-
 
 if __name__ == '__main__':
     import sys, os
