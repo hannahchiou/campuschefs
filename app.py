@@ -62,13 +62,19 @@ def recipeform():
         price = request.form.get('price')
         size = request.form.get('size')
         tags = request.form.getlist('tags')
+        # convert tags to a comma separated string for SET
+        if isinstance(tags, list):
+            tags = ','.join(tags)
         description = request.form.get('description')
         steps = request.form.get('steps')
 
         # Get the current date and time
-        now = datetime.now()
+        currentDate = datetime.datetime.now()
         # Format it into 'month-day-year'
-        post_date = now.strftime("%m-%d-%Y")
+        # post_date = currentDate.strftime("%m-%d-%Y")
+        
+        # format into datetime format for inserting into database
+        post_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
          # Collect ingredients
         ingredients = []
@@ -98,7 +104,7 @@ def recipeform():
         # get the post id
         last_insert = helper.insertRecipe(conn, 
                             uid = request.cookies.get('uid'), 
-                            date = post_date,
+                            post_date = post_date,
                             title = title,
                             cover_photo = photo_url,
                             serving_size = size,
@@ -126,7 +132,7 @@ def recipeform():
                                 quantity = quantity,
                                 measurement = measurement)
             index += 1
-
+        print(f"last insert pid is: {last_insert}")
         # redirect to recipe/post_id
         return redirect(url_for('recipepost', post_id = last_insert))
     
@@ -134,7 +140,9 @@ def recipeform():
 @app.route('/recipepost/<post_id>', methods = ['GET'])
 def recipepost(post_id):
     if request.method == 'GET':
-        post = helper.getpost(post_id)
+        conn = dbi.connect()
+        post = helper.getpost(conn, post_id)
+        ingredients = helper.getIngredients(conn, post_id)
 
         if not post: 
             flash('''The recipe you requested is not in the database.
@@ -142,17 +150,18 @@ def recipepost(post_id):
             return redirect(url_for('index'))
 
         return render_template('recipepost.html',
+                               username = request.cookies.get('uid'),
                                title = post['title'],
-                               date = post['date'],
+                               date = post['post_date'],
                                prep_time = post['prep_time'],
                                cook_time = post['cook_time'],
                                total_time = post['total_time'],
-                               price = post['price'], size = post['size'],
+                               price = post['price'], size = post['serving_size'],
                                tags = post['tags'], 
-                               description = post['description'], 
+                               description = post['text_descrip'], 
                                steps = post['steps'],
-                               ingredients = post['ingredients'],
-                               photo_url = post['photo_url'])
+                               ingredients = ingredients,
+                               photo_url = post['cover_photo'])
 
 # TO DO: update recipe form with form filled out. make new html page for update recipe form
 # route here

@@ -34,11 +34,13 @@ create table post (
     serving_size int,
     prep_time int, 
     cook_time int,
+    total_time int,
+    post_date datetime,
     text_descrip varchar(1000),
     steps varchar(1000),
     tags set('vegan', 'vegetarian', 'gluten-free', 'dairy-free', 'nut-free', 'quick-meal', 'meal-prep', 'comfort-food', 'breakfast', 
                 'brunch', 'lunch', 'dinner', 'snacks', 'spicy', 'fall', 'spring', 'summer', 'winter'),
-    price enum('$', '$$', '$$$'),
+    price enum('low', 'medium', 'high'),
     foreign key (uid) references user(uid)
 );
 
