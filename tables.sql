@@ -55,7 +55,7 @@ create table ingredient (
 create table images (
     image_id int auto_increment primary key,
     pid int,
-    photo blob,
+    photo varchar(500),
     foreign key (pid) references post(pid)
 );
 

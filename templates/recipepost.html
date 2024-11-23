@@ -5,7 +5,7 @@
 <body>
     <!-- Cover Photo -->
     {% if photo_url %}
-    <img src="{{ photo_url }}" alt="Cover Photo" style="max-width:100%; height:auto;">
+    <img src="{{photo_url}}" alt="Cover Photo" style="max-width:100%; height:auto;">
     {% endif %}
     
     <h1>{{ title }}</h1>
@@ -35,7 +35,7 @@
         {% endfor %}
     </ul>
 
-    <p><b>Tags:</b> {{ tags | join(', ') }}</p>
+    <p><b>Tags:</b> {{tags}}</p>
 
     <p><b>Steps:</b></p>
     <p>{{ steps }}</p>

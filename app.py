@@ -148,6 +148,12 @@ def recipepost(post_id):
             flash('''The recipe you requested is not in the database.
                   Please reenter the information.''')
             return redirect(url_for('index'))
+        print(f"The link is: {post['cover_photo']}")
+
+        photo_url = post['cover_photo']
+        # decode photo if it is in binary
+        if isinstance(photo_url, bytes):
+            photo_url = photo_url.decode('utf-8')
 
         return render_template('recipepost.html',
                                username = request.cookies.get('uid'),
@@ -161,7 +167,7 @@ def recipepost(post_id):
                                description = post['text_descrip'], 
                                steps = post['steps'],
                                ingredients = ingredients,
-                               photo_url = post['cover_photo'])
+                               photo_url = photo_url)
 
 # TO DO: update recipe form with form filled out. make new html page for update recipe form
 # route here
