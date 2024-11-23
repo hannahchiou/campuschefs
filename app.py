@@ -205,6 +205,10 @@ def discover():
 
     return render_template('discover.html', posts=posts)
 
+@app.route('/profile', methods=['GET'])
+def profile():
+    return render_template('main.html')
+
 if __name__ == '__main__':
     import sys, os
     if len(sys.argv) > 1:
