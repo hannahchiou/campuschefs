@@ -2,9 +2,12 @@
 
 {% block main_content %}
 
-<!-- TO DO: Cover photo will go here -->
-
 <body>
+    <!-- Cover Photo -->
+    {% if photo_url %}
+    <img src="{{ photo_url }}" alt="Cover Photo" style="max-width:100%; height:auto;">
+    {% endif %}
+    
     <h1>{{ title }}</h1>
     <p><b>{{ username }}</b></p>
     <p><b>{{ date }}</b></p>

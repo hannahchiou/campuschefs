@@ -5,6 +5,7 @@ drop table if exists conversation;
 drop table if exists comment;
 drop table if exists images;
 drop table if exists board;
+drop table if exists ingredient;
 drop table if exists post;
 drop table if exists follow;
 drop table if exists user;
@@ -28,11 +29,25 @@ create table follow (
 create table post (
     pid int auto_increment primary key,
     uid int,
+    title varchar(1000), -- recipe title
     cover_photo blob,
+    serving_size int,
+    prep_time int, 
+    cook_time int,
     text_descrip varchar(1000),
-    tags enum('spicy', 'dessert', 'breakfast', 'dinner', 'lunch'),
+    steps varchar(1000),
+    tags set('vegan', 'vegetarian', 'gluten-free', 'dairy-free', 'nut-free', 'quick-meal', 'meal-prep', 'comfort-food', 'breakfast', 
+                'brunch', 'lunch', 'dinner', 'snacks', 'spicy', 'fall', 'spring', 'summer', 'winter'),
     price enum('$', '$$', '$$$'),
     foreign key (uid) references user(uid)
+);
+
+create table ingredient (
+    pid int,
+    foreign key (pid) references post(pid),
+    name varchar(50),
+    quantity int,
+    measurement varchar(50)
 );
 
 create table images (

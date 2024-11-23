@@ -8,6 +8,8 @@ app = Flask(__name__)
 
 import cs304dbi as dbi
 # import cs304dbi_sqlite3 as dbi
+import datetime
+import helper
 
 import secrets
 
@@ -32,7 +34,17 @@ def set_cookie():
     response.set_cookie('uid', 1)
     return response
 
-import datetime
+# Configure the upload folder and allowed extensions
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size: 16MB
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
@@ -72,42 +84,57 @@ def recipeform():
                 'name': name
             })
             index += 1
+
+            file = request.files.get('cover-photo')
+            photo_url = None
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                photo_url = url_for('static', filename=f'uploads/{filename}')
+
+        #helper.insertRecipe
     
-            return render_template('recipepost.html', title=title, date=date, 
-                           prep_time=prep_time, cook_time=cook_time, 
-                           total_time=total_time, price=price, size=size, 
-                           tags=tags, description=description, 
-                           steps=steps, ingredients=ingredients)
+        return render_template(
+                    'recipepost.html',
+                    title=title,
+                    date=date,
+                    prep_time=prep_time,
+                    cook_time=cook_time,
+                    total_time=total_time,
+                    price=price,
+                    size=size,
+                    tags=tags,
+                    description=description,
+                    steps=steps,
+                    ingredients=ingredients,
+                    photo_url=photo_url
+                )
+
 
 # recipe post
 @app.route('/recipepost/<post_id>', methods = ['GET'])
 def recipepost(post_id):
     if request.method == 'GET':
-        return render_template('recipepost.html')
-    
-@app.route('/select/<string:filter>/<string:specific_tag> ', methods=['GET', 'POST'])
-def select():
-    conn1 = dbi.connect()
-    curs = dbi.dict_cursor(conn1)
-    if request.method == 'POST':
-        selected_filter = request.form.get('filter-type')
-        selected_value = None
+        post = helper.getpost(post_id)
 
-        if selected_filter == "season":
-            selected_value = request.form.get('season')
-            return redirect(url_for('main.html'))
-        
-        elif selected_filter == "course":
-            selected_value = request.form.get('course')
-            
-        elif selected_filter == "dietary":
-            selected_value = request.form.get('dietary')
-            
-        elif selected_filter == "convenience":
-            selected_value = request.form.get('convenience')
+        if not post: 
+            flash('''The recipe you requested is not in the database.
+                  Please reenter the information.''')
+            return redirect(url_for('index'))
 
-
-        
+        return render_template('recipepost.html',
+                               title = post['title'],
+                               date = post['date'],
+                               prep_time = post['prep_time'],
+                               cook_time = post['cook_time'],
+                               total_time = post['total_time'],
+                               price = post['price'], size = post['size'],
+                               tags = post['tags'], 
+                               description = post['description'], 
+                               steps = post['steps'],
+                               ingredients = post['ingredients'],
+                               photo_url = post['photo_url'])
 
 # TO DO: update recipe form with form filled out. make new html page for update recipe form
 # route here
@@ -144,8 +171,6 @@ def discover():
     conn.close()
 
     return render_template('discover.html', posts=posts)
-
-
 
 if __name__ == '__main__':
     import sys, os
