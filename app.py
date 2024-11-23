@@ -32,30 +32,52 @@ def set_cookie():
     response.set_cookie('uid', 1)
     return response
 
-
 import datetime
 
 @app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
     if request.method == 'GET':
         return render_template('recipeform.html')
+    
     if request.method == 'POST':
+         # Get basic form data
         title = request.form.get('title')
-        prep_time = request.form.get('prep-time')
-        cook_time = request.form.get('cook-time')
+        prep_time = int(request.form.get('prep-time', 0))
+        cook_time = int(request.form.get('cook-time', 0))
         total_time = prep_time + cook_time
-
         price = request.form.get('price')
+        size = request.form.get('size')
+        tags = request.form.getlist('tags')
+        description = request.form.get('description')
+        steps = request.form.get('steps')
 
         # Get the current date and time
         now = datetime.now()
         # Format it into 'month-day-year'
         date = now.strftime("%m-%d-%Y")
-        
-        
-        return url_for(recipepost
-                       ,date = date
-                       ,post_id = id)
+
+         # Collect ingredients
+        ingredients = []
+        index = 0
+        while True:
+            # Dynamically access each row of ingredients
+            quantity = request.form.get(f'ingredients[{index}][quantity]')
+            measurement = request.form.get(f'ingredients[{index}][measurement]')
+            name = request.form.get(f'ingredients[{index}][name]')
+            if not name:  # Stop when no more ingredient names are provided
+                break
+            ingredients.append({
+                'quantity': quantity,
+                'measurement': measurement,
+                'name': name
+            })
+            index += 1
+    
+            return render_template('recipepost.html', title=title, date=date, 
+                           prep_time=prep_time, cook_time=cook_time, 
+                           total_time=total_time, price=price, size=size, 
+                           tags=tags, description=description, 
+                           steps=steps, ingredients=ingredients)
 
 # recipe post
 @app.route('/recipepost/<post_id>', methods = ['GET'])
@@ -79,7 +101,8 @@ def select():
 #@app.route('/updatepost/<post_id',methods = ['GET','POST'])
 
 # TO DO: discover board --> GET render discover board page html, POST search 
-# route here        
+# route here
+        
 @app.route('/discover', methods=['GET'])
 def discover():
     # Connect to the database
