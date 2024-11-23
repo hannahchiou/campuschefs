@@ -2,50 +2,121 @@
 
 {% block main_content %}
 
+
+
 <h1>Discover Recipes</h1>
 
-<!-- Search Bar -->
-<div class="search-bar">
-    <form method="GET" action="{{ url_for('discover') }}">
-        <input type="text" name="search" placeholder="Search by recipe title, tag, or price..." value="{{ request.args.get('search', '') }}">
-        <button type="submit">Search</button>
-    </form>
-</div>
+<style>
+    /* Ensure the parent container uses flexbox */
+    .search-container {
+        display: flex;
+        /* Arrange children horizontally */
+        align-items: center;
+        /* Center vertically */
+        gap: 5px;
+        /* Add spacing between elements */
+    }
 
+    .search-bar input {
+        width: 400px;
+        /* Adjust this value as needed */
+        padding: 8px 12px;
+        font-size: 16px;
+    }
+
+    /* Ensure the button aligns properly */
+    .search-bar button {
+        padding: 8px 12px;
+        font-size: 16px;
+        margin-left: 5px;
+        cursor: pointer;
+    }
+
+
+    .dropbtn {
+        font-size: 32px;
+        /* Adjust emoji size */
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .dropdown-container {
+    display: flex;          /* Arrange items horizontally */
+    gap: 10px;              /* Add spacing between buttons */
+    justify-content: center; /* Center align horizontally */
+}
+</style>
+
+
+<!-- Search Bar -->
+<div class="search-container">
+    <div class="search-bar">
+        <form method="GET" action="{{ url_for('discover') }}">
+            <input type="text" name="search" placeholder="Search by recipe title, tag, or price..."
+                value="{{ request.args.get('search', '') }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <form class="select" method="POST" action="/select/">
+        <div class="dropdown-container"> 
+        <div class="dropdown">
+            <button class="dropbtn" title="Season">📆</button>
+            <div class="dropdown-content">
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn" title="Courses">🍴</button>
+            <div class="dropdown-content">
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn" title="Dietary">🥑</button>
+            <div class="dropdown-content">
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn" title="Convenience">🕒</button>
+            <div class="dropdown-content">
+            </div>
+        </div>
+</div>
+</div>
+</form>
 <!-- Displaying Flash Messages -->
 {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <div id="messages">
-        {% for msg in messages %}
-            <p>{{msg}}</p>
-        {% endfor %}
-    </div>
-  {% endif %}
+{% if messages %}
+<div id="messages">
+    {% for msg in messages %}
+    <p>{{msg}}</p>
+    {% endfor %}
+</div>
+{% endif %}
 {% endwith %}
 
 <!-- Recipe List -->
 <div class="recipe-list">
     {% for post in posts %}
-        <div class="recipe-card">
-            <h3>{{ post.title }}</h3>
-            <img src="{{ url_for('static', filename='images/' + post.cover_photo) }}" alt="{{ post.title }} cover photo" class="recipe-img" />
+    <div class="recipe-card">
+        <h3>{{ post.title }}</h3>
+        <img src="{{ url_for('static', filename='images/' + post.cover_photo) }}" alt="{{ post.title }} cover photo"
+            class="recipe-img" />
 
-            <p><strong>Description:</strong> {{ post.text_descrip }}</p>
-            <p><strong>Tags:</strong> {{ post.tags }}</p>
-            <p><strong>Price Range:</strong> {{ post.price }}</p>
+        <p><strong>Description:</strong> {{ post.text_descrip }}</p>
+        <p><strong>Tags:</strong> {{ post.tags }}</p>
+        <p><strong>Price Range:</strong> {{ post.price }}</p>
 
-            <!-- Add a button for interacting with the recipe (like 'Save to Board') -->
-            <a href="{{ url_for('view_recipe', pid=post.pid) }}" class="btn">View Recipe</a>
-        </div>
+        <!-- Add a button for interacting with the recipe (like 'Save to Board') -->
+        <a href="{{ url_for('view_recipe', pid=post.pid) }}" class="btn">View Recipe</a>
+    </div>
     {% endfor %}
 </div>
 
 <!-- Pagination (optional, if there are many posts) -->
 {% if posts.has_next %}
-    <div class="pagination">
-        <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
-        <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
-    </div>
+<div class="pagination">
+    <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
+    <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
+</div>
 {% endif %}
 
 {% endblock %}
