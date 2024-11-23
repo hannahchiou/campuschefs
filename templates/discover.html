@@ -102,6 +102,7 @@
                 <label for="season-options" class="dropbtn">📆</label>
                 <div id="season-options" class="dropdown-content">
                     <select id="season-dropdown" name="season" required>
+                        <option value="select" selected>Select</option>
                         <option value="spring">Spring</option>
                         <option value="summer">Summer</option>
                     </select>
@@ -112,26 +113,31 @@
             <label for="courses-options" class="dropbtn">🍴</label>
             <div id="course-options" class="dropdown-content">
                 <select id="season-dropdown" name="course" required>
-                    <option value="breakfast">breakfast</option>
+                    <option value="select" selected>Select</option>
+                    <option value="breakfast">Breakfast</option>
                     <option value="lunch">Lunch</option>
                     <option value="dinner">Dinner</option>
                 </select>
             </div>
         </div>
+
         <div class="dropdown">
             <label for="dietary-options" class="dropbtn">🥑</label>
             <div id="course-options" class="dropdown-content">
                 <select id="season-dropdown" name="dietary" required>
+                    <option value="select" selected>Select</option>
                     <option value="dairy-free">Dairy-Free</option>
                     <option value="vegan">Vegan</option>
-                    <option value="Vegetarian">Vegetarian</option>
+                    <option value="vegetarian">Vegetarian</option>
                 </select>
             </div>
         </div>
+
         <div class="dropdown">
             <label for="convenience-options" class="dropbtn">🕒</label>
             <div id="convenience-options" class="dropdown-content">
                 <select id="convenience-dropdown" name="convenience" required>
+                    <option value="Select" selected>Select</option>
                     <option value="quick_meals">Quick Meals</option>
                     <option value="comfort_meals">Comfort Meals</option>
                     <option value="meal_prep">Meal Prep</option>
