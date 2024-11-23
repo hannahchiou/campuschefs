@@ -17,24 +17,25 @@
 
 <body>
 
-<h1> 🥘 CampusChefs Recipe Post 🥘 </h1>
 <h2> Please fill in all forms to post your new recipe to CampusChefs. </h2>
 <p> An important part of my group's final project, CampusChefs, is the ability to <b>post your recipes</b> for other college students to try out and enjoy. This form is an example of what a new recipe post might look like for a user. </p>
 
 <section>
 <h2> New recipe </h2>
 
-<form id="recipe-form" method="post" action="url_for{{recipe-post}}">
+<form id="recipe-form" method="post" action="">
 
 <label for="title"> Recipe title</label>
 <input type="text" id="title" name="title" placeholder="Enter a short recipe title" required>
 
 <!-- TO DO: only certain file types allowed (jpeg, jpg, pdf)-->
 <!-- TO DO: only certain sizes / resolutions of images allowed (eg. 1024px x 2000px)-->
-<!-- <p><b>Upload a cover photo: </b>
-    <form method="post" action="" enctype="multipart/form-data">
-        <p><label>Picture: <input type="file" name="cover-photo" required></label></p>
-    </form> -->
+<p><b>Upload a cover photo: </b></p>
+<form method="post" enctype="multipart/form-data">
+    <label>Picture: <input type="file" name="cover-photo" required></label>
+    <button type="submit">Upload</button>
+</form>
+
 
 <label for="size"> Serving size</label>
 <select id = 'size' name = 'size' required>
@@ -60,12 +61,7 @@
 
 <!-- TO DO: Dynamically add rows using JS -->
 <p> <b>Ingredients and Measurements </b></p>
-<<<<<<< HEAD
-<table>
-        <!-- Row 1 -->
-=======
     <table>
->>>>>>> b2ccfd2fd2e180cbed70107a1a3bde32b6d45e02
         <tr>
             <td>
                 <label for="quantity1">Quantity:</label>
@@ -125,7 +121,7 @@
 <label for="steps"> Recipe steps</label>
 <textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!" required></textarea>
 
-<label for="tags"> Tags</label>
+<label for="tags"> Tags </label>
 <div class="radio-group">
     <p><b> Select the price of the recipe:</b></p>
     <label>
