@@ -190,8 +190,6 @@ def discover():
 
     return render_template('discover.html', posts=posts)
 
-
-
 if __name__ == '__main__':
     import sys, os
     if len(sys.argv) > 1:
