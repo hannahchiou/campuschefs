@@ -32,6 +32,7 @@ def set_cookie():
     response.set_cookie('uid', 1)
     return response
 
+
 import datetime
 
 @app.route('/recipeform/', methods = ['GET','POST'])
@@ -82,8 +83,8 @@ def discover():
     if search_term:
         query = """
             select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
-            from post p
-            where p.title like %s or p.tags lik %s or p.price like %s
+            from post as p
+            where p.title like %s or p.tags like %s or p.price like %s
         """
         search_pattern = f"%{search_term}%"
         curs.execute(query, (search_pattern, search_pattern, search_pattern))
