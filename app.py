@@ -62,14 +62,24 @@ def recipeform():
 def recipepost(post_id):
     if request.method == 'GET':
         return render_template('recipepost.html')
+    
+@app.route('/select/<string:filter> <string:specific_tag> ', methods=['GET', 'POST'])
+def select():
+    conn1 = dbi.connect()
+    curs = dbi.dict_cursor(conn1)
+    if request.method == 'POST':
+        selected_filter = request.form.get('filter-type')
+        if selected_filter == "Season":
+            print('season and tag // ignore this for now')
+
+        
 
 # TO DO: update recipe form with form filled out. make new html page for update recipe form
 # route here
-@app.route('/updatepost/<post_id',methods = ['GET','POST'])
+#@app.route('/updatepost/<post_id',methods = ['GET','POST'])
 
 # TO DO: discover board --> GET render discover board page html, POST search 
-# route here
-        
+# route here        
 @app.route('/discover', methods=['GET'])
 def discover():
     # Connect to the database
@@ -82,7 +92,7 @@ def discover():
     # Create SQL query with filtering if there's a search term
     if search_term:
         query = """
-            select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+            select p.pid, p.cover_photo, p.text_descrip, p.tags, p.price
             from post as p
             where p.title like %s or p.tags like %s or p.price like %s
         """
@@ -90,7 +100,7 @@ def discover():
         curs.execute(query, (search_pattern, search_pattern, search_pattern))
     else:
         # Get all posts
-        curs.execute("select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price from post p")
+        curs.execute("select p.pid, p.cover_photo, p.text_descrip, p.tags, p.price from post p")
 
     posts = curs.fetchall()
 

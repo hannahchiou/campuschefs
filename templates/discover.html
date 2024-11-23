@@ -7,44 +7,83 @@
 <h1>Discover Recipes</h1>
 
 <style>
-    /* Ensure the parent container uses flexbox */
-    .search-container {
-        display: flex;
-        /* Arrange children horizontally */
-        align-items: center;
-        /* Center vertically */
-        gap: 5px;
-        /* Add spacing between elements */
-    }
-
-    .search-bar input {
-        width: 400px;
-        /* Adjust this value as needed */
-        padding: 8px 12px;
-        font-size: 16px;
-    }
-
-    /* Ensure the button aligns properly */
-    .search-bar button {
-        padding: 8px 12px;
-        font-size: 16px;
-        margin-left: 5px;
-        cursor: pointer;
-    }
-
-
-    .dropbtn {
-        font-size: 32px;
-        /* Adjust emoji size */
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
-    .dropdown-container {
-    display: flex;          /* Arrange items horizontally */
-    gap: 10px;              /* Add spacing between buttons */
-    justify-content: center; /* Center align horizontally */
+/* General container styles */
+.search-container {
+    display: flex;
+    flex-direction: column; /* Stack search bar and dropdown container */
+    gap: 15px; /* Space between search bar and dropdowns */
+    align-items: flex-start; /* Align elements to the left */
 }
+
+/* Search bar styling */
+.search-bar {
+    display: flex;
+    gap: 10px;
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-bar button {
+    padding: 8px 16px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+/* Dropdown container */
+.dropdown-container {
+    display: flex;
+    gap: 15px; /* Add space between dropdowns */
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping if there's not enough horizontal space */
+}
+
+/* Dropdown styling */
+.dropbtn {
+    font-size: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px; /* Add padding for better click area */
+}
+
+.dropdown {
+    position: relative; /* Needed for dropdown content positioning */
+}
+
+/* Dropdown content hidden by default */
+.dropdown-content {
+    display: none; /* Initially hidden */
+    position: absolute;
+    top: 40px; /* Position below the button */
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+/* Show dropdown content on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Styling for the <select> element */
+.dropdown-content select {
+    font-size: 16px;
+    padding: 8px;
+    width: 150px;
+}
+
+
 </style>
 
 
@@ -57,30 +96,48 @@
             <button type="submit">Search</button>
         </form>
     </div>
-    <form class="select" method="POST" action="/select/">
+    <form class="select" method="POST" action="/select/{{ filter }}{{specific_tag}}">
         <div class="dropdown-container"> 
+            <div class="dropdown">
+                <label for="season-options" class="dropbtn">📆</label>
+                <div id="season-options" class="dropdown-content">
+                    <select id="season-dropdown" name="season" required>
+                        <option value="spring">Spring</option>
+                        <option value="summer">Summer</option>
+                    </select>
+                </div>
+            </div>
+
         <div class="dropdown">
-            <button class="dropbtn" title="Season">📆</button>
-            <div class="dropdown-content">
+            <label for="courses-options" class="dropbtn">🍴</label>
+            <div id="course-options" class="dropdown-content">
+                <select id="season-dropdown" name="course" required>
+                    <option value="breakfast">breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                </select>
             </div>
         </div>
         <div class="dropdown">
-            <button class="dropbtn" title="Courses">🍴</button>
-            <div class="dropdown-content">
+            <label for="dietary-options" class="dropbtn">🥑</label>
+            <div id="course-options" class="dropdown-content">
+                <select id="season-dropdown" name="dietary" required>
+                    <option value="dairy-free">Dairy-Free</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="Vegetarian">Vegetarian</option>
+                </select>
             </div>
         </div>
         <div class="dropdown">
-            <button class="dropbtn" title="Dietary">🥑</button>
-            <div class="dropdown-content">
+            <label for="convenience-options" class="dropbtn">🕒</label>
+            <div id="convenience-options" class="dropdown-content">
+                <select id="convenience-dropdown" name="convenience" required>
+                    <option value="quick_meals">Quick Meals</option>
+                    <option value="comfort_meals">Comfort Meals</option>
+                    <option value="meal_prep">Meal Prep</option>
+                </select>
             </div>
         </div>
-        <div class="dropdown">
-            <button class="dropbtn" title="Convenience">🕒</button>
-            <div class="dropdown-content">
-            </div>
-        </div>
-</div>
-</div>
 </form>
 <!-- Displaying Flash Messages -->
 {% with messages = get_flashed_messages() %}
