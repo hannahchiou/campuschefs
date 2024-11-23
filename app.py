@@ -20,10 +20,18 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
-    return render_template('main.html', # put in html for home page
-                           page_title='Main Page')
+    username = request.cookies.get('username', 'Guest')
+    uid = request.cookies.get('uid', 1)
+    return render_template('main.html', username=username, uid = uid, 
+                           page_title = 'home page')
 
-<<<<<<< HEAD
+@app.route('/setcookie')
+def set_cookie():
+    response = make_response("Cookie is set")
+    response.set_cookie('username', 'Guest')  # Replace with your username
+    response.set_cookie('uid', 1)
+    return response
+
 import datetime
 
 @app.route('/recipeform/', methods = ['GET','POST'])
@@ -31,18 +39,36 @@ def recipeform():
     if request.method == 'GET':
         return render_template('recipeform.html')
     if request.method == 'POST':
-        # TO DO: Flash message if a required field is missing 
-        time =  datetime.now()
+        title = request.form.get('title')
+        prep_time = request.form.get('prep-time')
+        cook_time = request.form.get('cook-time')
+        total_time = prep_time + cook_time
+
+        price = request.form.get('price')
+
+        # Get the current date and time
+        now = datetime.now()
+        # Format it into 'month-day-year'
+        date = now.strftime("%m-%d-%Y")
+        
+        
+        return url_for(recipepost
+                       ,date = date
+                       ,post_id = id)
 
 # recipe post
-# update recipe form with form filled out. make new html page for update recipe form
-# discover board --> GET render discover board page html, POST search 
+@app.route('/recipepost/<post_id>', methods = ['GET'])
+def recipepost(post_id):
+    if request.method == 'GET':
+        return render_template('recipepost.html')
 
+# TO DO: update recipe form with form filled out. make new html page for update recipe form
+# route here
+@app.route('/updatepost/<post_id',methods = ['GET','POST'])
+
+# TO DO: discover board --> GET render discover board page html, POST search 
+# route here
         
-=======
-# You will probably not need the routes below, but they are here
-# just in case. Please delete them if you are not using them
-
 @app.route('/discover', methods=['GET'])
 def discover():
     # Connect to the database
@@ -73,54 +99,6 @@ def discover():
     return render_template('discover.html', posts=posts)
 
 
-@app.route('/greet/', methods=["GET", "POST"])
-def greet():
-    if request.method == 'GET':
-        return render_template('greet.html',
-                               page_title='Form to collect username')
-    else:
-        try:
-            username = request.form['username'] # throws error if there's trouble
-            flash('form submission successful')
-            return render_template('greet.html',
-                                   page_title='Welcome '+username,
-                                   name=username)
-
-        except Exception as err:
-            flash('form submission error'+str(err))
-            return redirect( url_for('index') )
-
-# This route displays all the data from the submitted form onto the rendered page
-# It's unlikely you will ever need anything like this in your own applications, so
-# you should probably delete this handler
-
-@app.route('/formecho/', methods=['GET','POST'])
-def formecho():
-    if request.method == 'GET':
-        return render_template('form_data.html',
-                               page_title='Display of Form Data',
-                               method=request.method,
-                               form_data=request.args)
-    elif request.method == 'POST':
-        return render_template('form_data.html',
-                               page_title='Display of Form Data',
-                               method=request.method,
-                               form_data=request.form)
-    else:
-        raise Exception('this cannot happen')  
-
-# This route shows how to render a page with a form on it.
-
-@app.route('/testform/')
-def testform():
-    # these forms go to the formecho route
-    return render_template('testform.html',
-                           page_title='Page with two Forms')
-
-@app.route('/recipeform/')
-def recipeform():
-    return render_template('recipeform.html')
->>>>>>> 9dd9f432c7f014c8a50718105f8dbafdc9fd38e9
 
 if __name__ == '__main__':
     import sys, os
