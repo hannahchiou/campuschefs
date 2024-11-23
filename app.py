@@ -23,7 +23,7 @@ def index():
     return render_template('main.html', # put in html for home page
                            page_title='Main Page')
 
-<<<<<<< HEAD
+
 import datetime
 
 @app.route('/recipeform/', methods = ['GET','POST'])
@@ -39,7 +39,6 @@ def recipeform():
 # discover board --> GET render discover board page html, POST search 
 
         
-=======
 # You will probably not need the routes below, but they are here
 # just in case. Please delete them if you are not using them
 
@@ -56,7 +55,7 @@ def discover():
     if search_term:
         query = """
             select p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
-            from post p
+            from post as p
             where p.title like %s or p.tags lik %s or p.price like %s
         """
         search_pattern = f"%{search_term}%"
@@ -117,10 +116,7 @@ def testform():
     return render_template('testform.html',
                            page_title='Page with two Forms')
 
-@app.route('/recipeform/')
-def recipeform():
-    return render_template('recipeform.html')
->>>>>>> 9dd9f432c7f014c8a50718105f8dbafdc9fd38e9
+
 
 if __name__ == '__main__':
     import sys, os
