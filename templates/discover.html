@@ -96,12 +96,12 @@
             <button type="submit">Search</button>
         </form>
     </div>
-    <form class="select" method="POST" action="/select/{{ filter }}{{specific_tag}}">
+    <form class="select" method="POST" action="/select/{{ tag }}">
         <div class="dropdown-container"> 
             <div class="dropdown">
                 <label for="season-options" class="dropbtn">📆</label>
                 <div id="season-options" class="dropdown-content">
-                    <select id="season-dropdown" name="season" required>
+                    <select id="season-dropdown" name="season">
                         <option value="spring">Spring</option>
                         <option value="summer">Summer</option>
                     </select>
@@ -136,6 +136,7 @@
                     <option value="comfort_meals">Comfort Meals</option>
                     <option value="meal_prep">Meal Prep</option>
                 </select>
+                <input type="submit" value="choose">
             </div>
         </div>
 </form>
