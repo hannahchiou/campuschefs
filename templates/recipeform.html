@@ -31,10 +31,10 @@
 
 <!-- TO DO: only certain file types allowed (jpeg, jpg, pdf)-->
 <!-- TO DO: only certain sizes / resolutions of images allowed (eg. 1024px x 2000px)-->
-<p><b>Upload a cover photo: </b>
+<!-- <p><b>Upload a cover photo: </b>
     <form method="post" action="" enctype="multipart/form-data">
-        <p><label>Pic: <input type="file" name="cover-photo" required></label></p>
-    </form>
+        <p><label>Picture: <input type="file" name="cover-photo" required></label></p>
+    </form> -->
 
 <label for="size"> Serving size</label>
 <select id = 'size' name = 'size' required>
@@ -61,58 +61,61 @@
 <!-- TO DO: Dynamically add rows using JS -->
 <p> <b>Ingredients and Measurements </b></p>
 <table>
+        <!-- Row 1 -->
         <tr>
             <td>
-                <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" name="quantity" placeholder="Enter quantity" required>
+                <label for="quantity1">Quantity:</label>
+                <input type="number" id="quantity1" name="ingredients[0][quantity]" placeholder="Enter quantity" required>
             </td>
             <td>
-                <label for="measurement1">Select Measurement:</label>
-                <input type="text" id="measurement1" name="measurement" placeholder="Enter measurement here">
+                <label for="measurement1">Measurement:</label>
+                <input type="text" id="measurement1" name="ingredients[0][measurement]" placeholder="Enter measurement" required>
             </td>
             <td>
-                <label for="ingredient">Ingredient:</label>
-                <input type="text" id="ingredient" name="ingredient" placeholder="Enter ingredient here" required>
+                <label for="ingredient1">Ingredient:</label>
+                <input type="text" id="ingredient1" name="ingredients[0][name]" placeholder="Enter ingredient" required>
             </td>
         </tr>
+        <!-- Row 2 -->
         <tr>
             <td>
                 <label for="quantity2">Quantity:</label>
-                <input type="number" id="quantity2" name="quantity" placeholder="Enter quantity" required>
+                <input type="number" id="quantity2" name="ingredients[1][quantity]" placeholder="Enter quantity" required>
             </td>
             <td>
-                <label for="measurement2">Select Measurement:</label>
-                <input type="text" id="measurement2" name="measurement" placeholder="Enter measurement here">
+                <label for="measurement2">Measurement:</label>
+                <input type="text" id="measurement2" name="ingredients[1][measurement]" placeholder="Enter measurement" required>
             </td>
             <td>
                 <label for="ingredient2">Ingredient:</label>
-                <input type="text" id="ingredient2" name="ingredient" placeholder="Enter ingredient here" required>
+                <input type="text" id="ingredient2" name="ingredients[1][name]" placeholder="Enter ingredient" required>
             </td>
         </tr>
+        <!-- Row 3 -->
         <tr>
             <td>
                 <label for="quantity3">Quantity:</label>
-                <input type="number" id="quantity3" name="quantity" placeholder="Enter quantity" required>
+                <input type="number" id="quantity3" name="ingredients[2][quantity]" placeholder="Enter quantity" required>
             </td>
             <td>
-                <label for="measurement3">Select Measurement:</label>
-                <input type="text" id="measurement3" name="measurement" placeholder="Enter measurement here">
+                <label for="measurement3">Measurement:</label>
+                <input type="text" id="measurement3" name="ingredients[2][measurement]" placeholder="Enter measurement" required>
             </td>
             <td>
                 <label for="ingredient3">Ingredient:</label>
-                <input type="text" id="ingredient3" name="ingredient" placeholder="Enter ingredient here" required>
+                <input type="text" id="ingredient3" name="ingredients[2][name]" placeholder="Enter ingredient" required>
             </td>
         </tr>
     </table>
 
 <label for="steps"> Recipe steps</label>
-<textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!"></textarea>
+<textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!" required></textarea>
 
 <label for="tags"> Tags</label>
 <div class="radio-group">
     <p><b> Select the price of the recipe:</b></p>
     <label>
-        <input type="radio" name="price" value="low" required> $
+        <input type="radio" name="price" value="low"> $
     </label>
     <label>
         <input type="radio" name="price" value="medium"> $$
@@ -140,12 +143,6 @@
         <option value="snack">Snacks</option>
     </select>
 </div>
-
-<form action=" ">
-    <label for="files">Select photos:</label>
-    <input type="file" id="files" name="files" multiple><br><br>
-    <input type="submit">
-  </form>
 
 <label for="description"> Description or notes </label>
 <textarea id="description" name="description" placeholder="Enter an optional description or notes and suggestions for other users!"></textarea>
