@@ -20,9 +20,8 @@ h1{
     font-size: 55px;
     font-weight: bold;
     color: #193497;
-    margin-right: 150px;
-    margin-left: 80px;
-    margin-top: 1em;
+    margin: 1em auto; /* Centers the heading block itself */
+    text-align: center;
 }
 h2{
     color: #0077b6;
@@ -112,52 +111,44 @@ margin-right: 5px;
     font-size: 16px;
 }
     
-/* for a simple navbar. Talk to Scott if you want drop-downs. */
-nav > ul {
+nav {
     display: flex;
-    flex-direction: row;
-    text-align: center;
+    justify-content: center; /* Centers the navbar horizontally */
+    align-items: center; /* Centers items vertically (if needed) */
+    background-color: var(--color-header); /* Optional: Add a background color */
+    padding: 10px 0; /* Optional: Add padding for better spacing */
 }
 
-nav ul {
+nav > ul {
+    display: flex;
+    justify-content: center; /* Ensures the list itself is centered */
+    flex-direction: row; /* Keeps the navigation links in a row */
+    gap: 20px; /* Adds space between items */
     list-style-type: none;
-    margin: 0px;
-    padding: 0px;
-    text-align: center;
+    margin: 0; /* Resets any default margin */
+    padding: 0; /* Resets any default padding */
 }
 
 nav > ul > li {
-    flex: 0 0 auto;
-    width: 15em; 
+    flex: 0 0 auto; /* Ensures items stay their original size */
 }
 
 nav button, nav a {
     display: block;
-    box-sizing: border-box; /* easier to make button and A the same size */
-    width: 100%;
+    box-sizing: border-box; /* Makes width calculations easier */
+    width: 100%; /* Ensures the button or link fills its container */
     height: 40px;
-    padding: 0px;
-    padding-bottom: 5px;
-    background-color: var(--color-header); /* was #3498db */
+    padding: 0px 50px;
+    background-color: var(--color-header);
     border: 2px solid black;
     border-radius: 5px;
     cursor: pointer;
-    /* Firefox uses font -apple-system unless I repeat the font spec here. */
+    text-align: center;
     font-family: var(--font-family);
     font-weight: bold;
     font-size: 1.4rem;
 }
 
-/* Only the top-level buttons are centered; lower ones are left-aligned. */
-nav > ul > li > button , nav > ul > li > a {
-    text-align: center;
-}
-
-/* because of the margin trick, this can only be used for the last element */
-
-nav li.right {
-    margin-left: auto;
-}
 
 nav button:hover, button:focus, nav a:hover, nav a:focus {
     background-color: var(--color-focus);
