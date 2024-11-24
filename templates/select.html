@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block main_content %}
+
 <h1>Discover Recipes</h1>
 
 <style>
@@ -93,7 +94,6 @@
 </style>
 
 <div class="search-container">
-    <!-- Search Bar -->
     <div class="search-bar">
         <form method="GET" action="{{ url_for('discover') }}">
             <input type="text" name="search" placeholder="Search by recipe title, tag, or price..."
@@ -102,12 +102,10 @@
         </form>
     </div>
 
-    <!-- Dropdown Filters -->
     <div class="dropdown-container">
-        <!-- Seasonal Tags -->
         <div class="dropdown">
-            <button class="dropbtn">📆</button>
-            <div class="dropdown-content">
+            <label for="season-options" class="dropbtn">📆</label>
+            <div id="season-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="fall">Fall</button>
                     <button type="submit" name="tag" value="spring">Spring</button>
@@ -117,10 +115,9 @@
             </div>
         </div>
 
-        <!-- Course Tags -->
         <div class="dropdown">
-            <button class="dropbtn">🍴</button>
-            <div class="dropdown-content">
+            <label for="courses-options" class="dropbtn">🍴</label>
+            <div id="course-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="breakfast">Breakfast</button>
                     <button type="submit" name="tag" value="brunch">Brunch</button>
@@ -131,10 +128,9 @@
             </div>
         </div>
 
-        <!-- Dietary Preferences -->
         <div class="dropdown">
-            <button class="dropbtn">🥑</button>
-            <div class="dropdown-content">
+            <label for="dietary-options" class="dropbtn">🥑</label>
+            <div id="course-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="dairy-free">Dairy-Free</button>
                     <button type="submit" name="tag" value="gluten-free">Gluten-Free</button>
@@ -145,20 +141,22 @@
             </div>
         </div>
 
-        <!-- Convenience Tags -->
         <div class="dropdown">
-            <button class="dropbtn">🕒</button>
-            <div class="dropdown-content">
+            <label for="convenience-options" class="dropbtn">🕒</label>
+            <div id="course-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
-                    <button type="submit" name="tag" value="quick-meal">Quick Meal</button>
-                    <button type="submit" name="tag" value="meal-prep">Meal Prep</button>
-                    <button type="submit" name="tag" value="comfort-food">Comfort Food</button>
+                    <button type="submit" name="tag" value="quick-meal">Quick-Meal</button>
+                    <button type="submit" name="tag" value="meal-prep">Meal-Prep</button>
+                    <button type="submit" name="tag" value="comfort-food">Comfort-Food</button>
                 </form>
             </div>
         </div>
+        
+
+        </form>
     </div>
 
-    <!-- Recipe List -->
+
     <div class="recipe-list">
         {% if posts %}
         {% for post in posts %}
