@@ -7,87 +7,94 @@
 <h1>Discover Recipes</h1>
 
 <style>
-/* General container styles */
-.search-container {
-    display: flex;
-    flex-direction: column; /* Stack search bar and dropdown container */
-    gap: 15px; /* Space between search bar and dropdowns */
-    align-items: flex-start; /* Align elements to the left */
-}
+    /* General container styling */
+    .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Space between search bar and dropdown container */
+    }
+    
+    /* Dropdown container */
+    .dropdown-container {
+        display: flex;
+        gap: 15px; /* Space between dropdown items */
+        flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        position: relative; /* Ensure dropdown content is positioned correctly */
+        margin-bottom: 30px; /* Space below the dropdowns and above the recipe list */
+    }
+    
+    /* Dropdown styling */
+    .dropdown {
+        position: relative; /* Position relative to parent for dropdown content */
+    }
+    
+    .dropbtn {
+        font-size: 32px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+    }
+    
+    /* Dropdown content styling */
+    .dropdown-content {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 40px; /* Position below the button */
+        left: 0;
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10; /* Ensure it appears above other elements */
+    }
+    
+    .dropdown:hover .dropdown-content {
+        display: block; /* Show dropdown on hover */
+    }
+    
+    /* Links inside the dropdown */
+    .dropdown-content a {
+        text-decoration: none;
+        display: block;
+        padding: 5px 10px;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+    }
+    
+    .dropdown-content a:hover {
+        background-color: #f0f0f0;
+    }
+    
+    /* Recipe list */
+    .recipe-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px; /* Space between recipe cards */
+        justify-content: flex-start;
+    }
+    
+    /* Recipe card styling */
+    .recipe-card {
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 8px;
+        width: 200px;
+        text-align: center;
+    }
+    
+    /* Recipe images */
+    .recipe-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    </style>
+    
 
-/* Search bar styling */
-.search-bar {
-    display: flex;
-    gap: 10px;
-}
 
-.search-bar input {
-    width: 300px;
-    padding: 8px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.search-bar button {
-    padding: 8px 16px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    background-color: #f5f5f5;
-    cursor: pointer;
-}
-
-/* Dropdown container */
-.dropdown-container {
-    display: flex;
-    gap: 15px; /* Add space between dropdowns */
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrapping if there's not enough horizontal space */
-}
-
-/* Dropdown styling */
-.dropbtn {
-    font-size: 32px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px; /* Add padding for better click area */
-}
-
-.dropdown {
-    position: relative; /* Needed for dropdown content positioning */
-}
-
-/* Dropdown content hidden by default */
-.dropdown-content {
-    display: none; /* Initially hidden */
-    position: absolute;
-    top: 40px; /* Position below the button */
-    left: 0;
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1;
-}
-
-/* Show dropdown content on hover */
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* Styling for the <select> element */
-.dropdown-content select {
-    font-size: 16px;
-    padding: 8px;
-    width: 150px;
-}
-
-
-</style>
-
-
-<!-- Search Bar -->
 <div class="search-container">
     <div class="search-bar">
         <form method="GET" action="{{ url_for('discover') }}">
@@ -96,90 +103,69 @@
             <button type="submit">Search</button>
         </form>
     </div>
-    <form class="select" method="POST" action="/select/{{ tag }}">
-        <div class="dropdown-container"> 
-            <div class="dropdown">
-                <label for="season-options" class="dropbtn">📆</label>
-                <div id="season-options" class="dropdown-content">
-                    <select id="season-dropdown" name="season" required>
-                        <option value="spring">Spring</option>
-                        <option value="summer">Summer</option>
-                    </select>
-                </div>
+
+    <div class="dropdown-container">
+        <div class="dropdown">
+            <label for="season-options" class="dropbtn">📆</label>
+            <div id="season-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="spring">Spring</button>
+                    <button type="submit" name="tag" value="summer">Summer</button>
+                </form>
             </div>
+        </div>
 
         <div class="dropdown">
             <label for="courses-options" class="dropbtn">🍴</label>
             <div id="course-options" class="dropdown-content">
-                <select id="season-dropdown" name="course" required>
-                    <option value="select" selected>Select</option>
-                    <option value="breakfast">Breakfast</option>
-                    <option value="lunch">Lunch</option>
-                    <option value="dinner">Dinner</option>
-                </select>
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="breakfast">breakfast</button>
+                    <button type="submit" name="tag" value="lunch">Lunch</button>
+                    <button type="submit" name="tag" value="dinner">Dinner</button>
+                </form>
             </div>
         </div>
 
         <div class="dropdown">
             <label for="dietary-options" class="dropbtn">🥑</label>
             <div id="course-options" class="dropdown-content">
-                <select id="season-dropdown" name="dietary" required>
-                    <option value="select" selected>Select</option>
-                    <option value="dairy-free">Dairy-Free</option>
-                    <option value="vegan">Vegan</option>
-                    <option value="vegetarian">Vegetarian</option>
-                </select>
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="select" selected>Select</button>
+                    <button type="submit" name="tag" value="dairy-free">Dairy-Free</button>
+                    <button type="submit" name="tag" value="vegan">Vegan</button>
+                    <button type="submit" name="tag" value="vegetarian">Vegetarian</button>
+                </form>
             </div>
         </div>
-
-        <div class="dropdown">
-            <label for="convenience-options" class="dropbtn">🕒</label>
-            <div id="convenience-options" class="dropdown-content">
-                <select id="convenience-dropdown" name="convenience" required>
-                    <option value="Select" selected>Select</option>
-                    <option value="quick_meals">Quick Meals</option>
-                    <option value="comfort_meals">Comfort Meals</option>
-                    <option value="meal_prep">Meal Prep</option>
-                </select>
-                <input type="submit" value="choose">
-            </div>
-        </div>
-</form>
-<!-- Displaying Flash Messages -->
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<div id="messages">
-    {% for msg in messages %}
-    <p>{{msg}}</p>
-    {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
-
-<!-- Recipe List -->
-<div class="recipe-list">
-    {% for post in posts %}
-    <div class="recipe-card">
-        <h3>{{ post.title }}</h3>
-        <img src="{{ url_for('static', filename='images/' + post.cover_photo) }}" alt="{{ post.title }} cover photo"
-            class="recipe-img" />
-
-        <p><strong>Description:</strong> {{ post.text_descrip }}</p>
-        <p><strong>Tags:</strong> {{ post.tags }}</p>
-        <p><strong>Price Range:</strong> {{ post.price }}</p>
-
-        <!-- Add a button for interacting with the recipe (like 'Save to Board') -->
-        <a href="{{ url_for('view_recipe', pid=post.pid) }}" class="btn">View Recipe</a>
+        </form>
     </div>
-    {% endfor %}
-</div>
 
-<!-- Pagination (optional, if there are many posts) -->
-{% if posts.has_next %}
-<div class="pagination">
-    <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
-    <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
-</div>
-{% endif %}
+    <div class="recipe-list">
+        {% if posts %}
+        {% for post in posts %}
+        <div class="recipe-card">
+            <h3>
+                <a href="{{ url_for('recipepost', post_id=post['pid']) }}" style="text-decoration: underline; color: palevioletred;">
+                    {{ post['title'] }}
+                </a>
+            </h3>
+            <img src="{{ post['cover_photo'] }}" alt="{{ post['title'] }} cover photo" class="recipe-img" />
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No posts available.</p>
+        {% endif %}
+    </div>
 
-{% endblock %}
+
+
+
+    <!-- Pagination (optional, if there are many posts) -->
+    {% if posts.has_next %}
+    <div class="pagination">
+        <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
+        <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
+    </div>
+    {% endif %}
+
+    {% endblock %}
