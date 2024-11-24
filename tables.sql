@@ -39,7 +39,7 @@ create table post (
     text_descrip varchar(1000),
     steps varchar(1000),
     tags set('vegan', 'vegetarian', 'gluten-free', 'dairy-free', 'nut-free', 'quick-meal', 'meal-prep', 'comfort-food', 'breakfast', 
-                'brunch', 'lunch', 'dinner', 'snacks', 'fall', 'spring', 'summer', 'winter'),
+                'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'fall', 'spring', 'summer', 'winter'),
     price enum('low', 'medium', 'high'),
     foreign key (uid) references user(uid)
 );
