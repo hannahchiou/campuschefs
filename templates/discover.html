@@ -33,7 +33,7 @@
         background: none;
         border: none;
         cursor: pointer;
-        padding: 5px;
+        padding: 10px;
     }
     
     /* Dropdown content styling */
@@ -44,7 +44,7 @@
         left: 0;
         background-color: white;
         border: 1px solid #ccc;
-        padding: 10px;
+        padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         z-index: 10; /* Ensure it appears above other elements */
     }
@@ -109,8 +109,10 @@
             <label for="season-options" class="dropbtn">📆</label>
             <div id="season-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="fall">Fall</button>
                     <button type="submit" name="tag" value="spring">Spring</button>
                     <button type="submit" name="tag" value="summer">Summer</button>
+                    <button type="submit" name="tag" value="winter">Winter</button>
                 </form>
             </div>
         </div>
@@ -119,9 +121,11 @@
             <label for="courses-options" class="dropbtn">🍴</label>
             <div id="course-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
-                    <button type="submit" name="tag" value="breakfast">breakfast</button>
+                    <button type="submit" name="tag" value="breakfast">Breakfast</button>
+                    <button type="submit" name="tag" value="brunch">Brunch</button>
                     <button type="submit" name="tag" value="lunch">Lunch</button>
                     <button type="submit" name="tag" value="dinner">Dinner</button>
+                    <button type="submit" name="tag" value="snack">Snack</button>
                 </form>
             </div>
         </div>
@@ -130,13 +134,27 @@
             <label for="dietary-options" class="dropbtn">🥑</label>
             <div id="course-options" class="dropdown-content">
                 <form method="POST" action="{{ url_for('discover') }}">
-                    <button type="submit" name="tag" value="select" selected>Select</button>
                     <button type="submit" name="tag" value="dairy-free">Dairy-Free</button>
+                    <button type="submit" name="tag" value="gluten-free">Gluten-Free</button>
+                    <button type="submit" name="tag" value="nut-free">Nut-Free</button>
                     <button type="submit" name="tag" value="vegan">Vegan</button>
                     <button type="submit" name="tag" value="vegetarian">Vegetarian</button>
                 </form>
             </div>
         </div>
+
+        <div class="dropdown">
+            <label for="convenience-options" class="dropbtn">🕒</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="quick-meal">Quick-Meal</button>
+                    <button type="submit" name="tag" value="meal-prep">Meal-Prep</button>
+                    <button type="submit" name="tag" value="comfort-food">Comfort-Food</button>
+                </form>
+            </div>
+        </div>
+        
+
         </form>
     </div>
 
