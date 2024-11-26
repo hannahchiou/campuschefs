@@ -20,7 +20,7 @@ def insertIngredients(conn, pid, name, quantity, measurement):
                  values (%s, %s, %s, %s)''', [pid, name, quantity, measurement]) 
     conn.commit()
 
-def getpost(conn,pid):
+def getPost(conn,pid):
     '''
     Returns all information from a given recipe post
     '''
@@ -61,6 +61,44 @@ def deletePost(conn,pid):
     '''
     curs.execute(sql, [pid])
     conn.commit()  # Commit the deletion of the post
+
+def updateRecipe(conn, pid, title, cover_photo, serving_size, 
+                 prep_time, cook_time, total_time, text_descrip, steps, tags, price):
+    curs = dbi.cursor(conn)
+    sql = '''
+        UPDATE post
+        SET 
+            title = %s,
+            cover_photo = %s,
+            serving_size = %s,
+            prep_time = %s,
+            cook_time = %s,
+            total_time = %s, 
+            text_descrip = %s,
+            steps = %s,
+            tags = %s,
+            price = %s
+        WHERE pid = %s
+    '''
+    curs.execute(sql,[title,cover_photo,serving_size,prep_time,
+                      cook_time,total_time,text_descrip,steps,
+                      tags,price,pid])
+    conn.commit()
+
+def updateIngredients(conn, pid, name, quantity, measurement):
+    curs = dbi.cursor(conn)
+    print(f"SQL Parameters: pid={pid}, name={name}, quantity={quantity}, measurement={measurement}")
+    sql = '''
+        UPDATE ingredient
+        SET 
+            name = %s,
+            quantity = %s,
+            measurement = %s
+        WHERE pid = %s 
+    '''
+    curs.execute(sql, [name, quantity, measurement, pid])
+    conn.commit()
+
     
 def get_posts(conn):
     curs = dbi.dict_cursor(conn)

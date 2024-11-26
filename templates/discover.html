@@ -2,8 +2,6 @@
 
 {% block main_content %}
 
-
-
 <h1>Discover Recipes</h1>
 
 <style>
@@ -100,7 +98,7 @@
 <div class="search-container">
     <div class="search-bar">
         <form method="GET" action="{{ url_for('discover') }}">
-            <input type="text" name="search" placeholder="Search by recipe title, tag, or price..."
+            <input type="text" name="search" placeholder="Search by recipe title..."
                 value="{{ request.args.get('search', '') }}">
             <button type="submit">Search</button>
         </form>

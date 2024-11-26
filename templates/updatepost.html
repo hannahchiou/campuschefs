@@ -18,122 +18,70 @@
 
 <section>
 
-<form id="update-recipe" method="post" enctype="multipart/form-data" action="{{url_for('updatepost',post_id=post_id)}}">
+<form id="update-recipe" method="post" enctype="multipart/form-data" action="{{ url_for('updatepost', post_id=post_id) }}">
 
+<!-- Recipe Title -->
 <label for="title"> Recipe title</label>
-<input type="text" id="title" name="title" placeholder="Enter a short recipe title" required>
+<input type="text" id="title" name="title" value="{{ title }}" required>
 
-<p><b>Upload a cover photo (min 400x500px): </b></p>
-    <label>Picture: <input type="file" name="cover-photo" required></label>
+<!-- Cover Photo -->
+<p><b>Upload a cover photo (min 720x400 px): </b></p>
+<label>Picture: <input type="file" name="cover-photo" value="{{ cover_photo }}" required></label>
 
+<!-- Serving Size -->
 <label for="size"> Serving size</label>
-<select id = 'size' name = 'size' required>
-    <option value = ""> select </option>
-    <option value = "1"> 1 </option> 
-    <option value = "2"> 2 </option> 
-    <option value = "3"> 3 </option> 
-    <option value = "4"> 4 </option> 
-    <option value = "5"> 5 </option> 
-    <option value = "6"> 6 </option> 
-    <option value = "7"> 7 </option> 
-    <option value = "8"> 8 </option> 
-    <option value = "9+"> 9+ </option> 
+<select id="size" name="size" required>
+    <option value="">Select</option>
+    {% for i in range(1, 10) %}
+    <option value="{{ i }}" {% if size == i %}selected{% endif %}>{{ i }}</option>
+    {% endfor %}
+    <option value="9+" {% if size == "9+" %}selected{% endif %}>9+</option>
 </select>
 
+<!-- Prep Time -->
 <label for="prep-time">Prep Time (minutes):</label>
-<input type="number" id="prep-time" name="prep-time" placeholder="Enter prep time" required>
+<input type="number" id="prep-time" name="prep-time" value="{{ prep_time }}" placeholder="Enter prep time" required>
 
+<!-- Cook Time -->
 <label for="cook-time">Cook Time (minutes):</label>
-<input type="number" id="cook-time" name="cook-time" placeholder="Enter cook time" required>
+<input type="number" id="cook-time" name="cook-time" value="{{ cook_time }}" placeholder="Enter cook time" required>
 
-<!-- TO DO: Dynamically add rows using JS -->
-<p> <b>Ingredients and Measurements </b></p>
-    <table>
-        <tr>
-            <td>
-                <label for="quantity1">Quantity:</label>
-                <input type="number" id="quantity1" name="ingredients[0][quantity]" placeholder="Enter quantity" required>
-            </td>
-            <td>
-                <label for="measurement1">Measurement:</label>
-                <input type="text" id="measurement1" name="ingredients[0][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient1">Ingredient:</label>
-                <input type="text" id="ingredient1" name="ingredients[0][name]" placeholder="Enter ingredient" required>
-            </td>
-        </tr>
-        <!-- Row 2 -->
-        <tr>
-            <td>
-                <label for="quantity2">Quantity:</label>
-                <input type="number" id="quantity2" name="ingredients[1][quantity]" placeholder="Enter quantity" required>
-            </td>
-            <td>
-                <label for="measurement2">Measurement:</label>
-                <input type="text" id="measurement2" name="ingredients[1][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient2">Ingredient:</label>
-                <input type="text" id="ingredient2" name="ingredients[1][name]" placeholder="Enter ingredient" required>
-            </td>
-        </tr>
-        <!-- Row 3 -->
-        <tr>
-            <td>
-                <label for="quantity3">Quantity:</label>
-                <input type="number" id="quantity3" name="ingredients[2][quantity]" placeholder="Enter quantity" required>
-            </td>
-            <td>
-                <label for="measurement3">Measurement:</label>
-                <input type="text" id="measurement3" name="ingredients[2][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient3">Ingredient:</label>
-                <input type="text" id="ingredient3" name="ingredients[2][name]" placeholder="Enter ingredient" required>
-            </td>
-        </tr>
-        <!-- Row 4 -->
-        <tr>
-            <td>
-                <label for="quantity3">Quantity:</label>
-                <input type="number" id="quantity4" name="ingredients[3][quantity]" placeholder="Enter quantity" required>
-            </td>
-            <td>
-                <label for="measurement3">Measurement:</label>
-                <input type="text" id="measurement4" name="ingredients[3][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient3">Ingredient:</label>
-                <input type="text" id="ingredient4" name="ingredients[3][name]" placeholder="Enter ingredient" required>
-            </td>
-        </tr>
-    </table>
+<p><b>Ingredients and Measurements</b></p>
+<table>
+    {% for ingredient in ingredients %}
+    <tr>
+        <td>
+            <label for="quantity{{ loop.index0 }}">Quantity:</label>
+            <input type="number" id="quantity{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][quantity]" value="{{ ingredient['quantity'] }}" required>
+        </td>
+        <td>
+            <label for="measurement{{ loop.index0 }}">Measurement:</label>
+            <input type="text" id="measurement{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][measurement]" value="{{ ingredient['measurement'] }}">
+        </td>
+        <td>
+            <label for="ingredient{{ loop.index0 }}">Ingredient:</label>
+            <input type="text" id="ingredient{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][name]" value="{{ ingredient['name'] }}" required>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
-<!-- Adding dynamically added rows for the ingredients using jss (ingredients.js) -->
-<button type="btn">Add Row</button>
-<script src="{{url_for('static', filename='ingredients.js')}}"></script>
-
-<script>
-    document.getElementById('btn')
-        .addEventListener( 'click', (e) => addrow(e));
-</script>
-
-
-<label for="steps"> Recipe steps</label>
+<!-- Steps -->
+<label for="steps">Recipe steps</label>
 <p><i>Please number your steps and separate each step with a new line. </i></p>
-<textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!" required></textarea>
+<textarea id="steps" name="steps" required>{{ steps }}</textarea>
 
+<!-- Price -->
 <div class="radio-group">
-    <p><b> Select the price of the recipe:</b></p>
+    <p><b>Select the price of the recipe:</b></p>
     <label>
-        <input type="radio" name="price" value="low"> $
+        <input type="radio" name="price" value="low" {% if price == 'low' %}checked{% endif %}> $
     </label>
     <label>
-        <input type="radio" name="price" value="medium"> $$
+        <input type="radio" name="price" value="medium" {% if price == 'medium' %}checked{% endif %}> $$
     </label>
     <label>
-        <input type="radio" name="price" value="high"> $$$
+        <input type="radio" name="price" value="high" {% if price == 'high' %}checked{% endif %}> $$$
     </label>
 </div>
 
@@ -159,14 +107,15 @@
         <option value="spring">Spring</option>
         <option value="summer">Summer</option>
         <option value="winter">Winter</option>
-
     </select>
 </div>
 
-<label for="description"> Description or notes </label>
-<textarea id="description" name="description" placeholder="Enter an optional description or notes and suggestions for other users"></textarea>
 
-<p><input type="submit" value="Submit recipe!"> </p>
+<!-- Description -->
+<label for="description">Description or notes</label>
+<textarea id="description" name="description">{{ description }}</textarea>
+
+<p><input type="submit" value="Update my recipe"> </p>
 
 </form>
 </section>

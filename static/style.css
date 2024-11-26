@@ -157,7 +157,7 @@ nav button:hover, button:focus, nav a:hover, nav a:focus {
 }
 
 .standard-image {
-    width: 500px;
+    width: 710px;
     height: 400px;
     object-fit: cover;
     display: block;
@@ -193,8 +193,8 @@ li {
 .content-box {
     border: 2px solid #193497; 
     border-radius: 10px; 
-    padding: 10px; 
-    margin: 10px auto; 
+    padding: 5px; 
+    margin: 10px 5px; 
 }
 
 

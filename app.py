@@ -31,9 +31,14 @@ def index():
 
 @app.route('/setcookie')
 def set_cookie():
-    response = make_response("Cookie is set")
-    response.set_cookie('username', 'Guest')  # Replace with your username
-    response.set_cookie('uid', 1)
+    username = 'Guest User' 
+    uid = 1  
+
+    # Set the cookies with username and uid
+    response = make_response("Cookies have been set!")
+    response.set_cookie('username', username)
+    response.set_cookie('uid', str(uid))  
+
     return response
 
 # Configure the upload folder and allowed extensions
@@ -42,13 +47,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size: 16MB
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-MIN_WIDTH = 400
-MIN_HEIGHT = 500
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
@@ -131,7 +133,6 @@ def recipeform():
                                 quantity = quantity,
                                 measurement = measurement)
             index += 1
-        print(f"last insert pid is: {last_insert}")
         
         # redirect to recipe/post_id
         return redirect(url_for('recipepost', post_id = last_insert))
@@ -142,8 +143,9 @@ def recipepost(post_id):
     conn = dbi.connect()
 
     if request.method == 'GET':
-        post = helper.getpost(conn, post_id)
+        post = helper.getPost(conn, post_id)
         ingredients = helper.getIngredients(conn, post_id)
+        print(ingredients)
 
         if not post: 
             flash('''The recipe you requested is not in the database.
@@ -156,7 +158,7 @@ def recipepost(post_id):
             photo_url = photo_url.decode('utf-8')
 
         return render_template('recipepost.html',
-                               username = request.cookies.get('uid'),
+                               username=request.cookies.get('username', 'Guest'), 
                                title = post['title'],
                                date = post['post_date'],
                                prep_time = post['prep_time'],
@@ -179,14 +181,95 @@ def recipepost(post_id):
             flash('Your post has been successfully deleted.')
             return redirect(url_for('index'))
 
-
-# TO DO: update recipe form with form filled out. make new html page for update recipe form
-# route here
 @app.route('/updatepost/<post_id>',methods = ['GET','POST'])
+def updatepost(post_id):
+    conn = dbi.connect()
+    if request.method == 'GET':
+        # Autopopulate update form with previous info, similar to CRUD
+        recipe = helper.getPost(conn,post_id)
+        ingredients = helper.getIngredients(conn,post_id)
+        print('this post id is' + post_id)
+        id = post_id 
+        print(id)
 
-# TO DO: discover board --> GET render discover board page html, POST search 
-# route here
+        return render_template('updatepost.html',
+                               post_id = id,
+                               title=recipe['title'],
+                               cover_photo=recipe['cover_photo'],
+                               prep_time=recipe['prep_time'],
+                               cook_time=recipe['cook_time'],
+                               ingredients=ingredients,
+                               steps=recipe['steps'],
+                               description=recipe['text_descrip'])
+    
+    if request.method == 'POST':
+         # Get basic form data
+        title = request.form.get('title')
+        prep_time = int(request.form.get('prep-time', 0))
+        cook_time = int(request.form.get('cook-time', 0))
+        total_time = prep_time + cook_time
+        price = request.form.get('price')
+        size = request.form.get('size')
+        tags = request.form.getlist('tags')
+        # convert tags to a comma separated string for SET
+        if isinstance(tags, list):
+            tags = ','.join(tags)
+        description = request.form.get('description')
+        steps = request.form.get('steps')
+
+        print('post id: ' + post_id + 'got data')
+
+        file = request.files.get('cover-photo')
+        photo_url = None
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            photo_url = url_for('static', filename=f'uploads/{filename}')
+
+        # update the recipes
+        helper.updateRecipe(conn,post_id,title,photo_url,size,
+                            prep_time,cook_time,total_time,
+                            description,steps,tags,price)
         
+        # Populating ingredients list from the form
+        ingredients = []
+        index = 0
+        while True:
+            quantity = request.form.get(f'ingredients[{index}][quantity]')
+            measurement = request.form.get(f'ingredients[{index}][measurement]')
+            name = request.form.get(f'ingredients[{index}][name]')
+            if not name:  # Stop when no more ingredient names are provided
+                break
+            ingredients.append({
+                'quantity': quantity,
+                'measurement': measurement,
+                'name': name
+            })
+            index += 1
+        print("Ingredients to update:", ingredients)  # Debugging step to check populated ingredients
+
+        # Now updating the ingredients based on the populated list
+        for ingredient in ingredients:
+            # Get each ingredient's details
+            name = ingredient['name']
+            quantity = ingredient['quantity']
+            measurement = ingredient['measurement']
+            print(f"Updating ingredient: Name: {name}, Quantity: {quantity}, Measurement: {measurement}")
+            
+            # Update the ingredient in the database
+            helper.updateIngredients(conn, 
+                                    pid=post_id,
+                                    name=name,
+                                    quantity=quantity,
+                                    measurement=measurement)
+
+        flash('Your recipe has been successfully updated.')
+        return redirect(url_for('recipepost', post_id=post_id))
+
+
+
+# Discover board --> GET render discover board page html, POST search         
 @app.route('/discover', methods=['GET','POST'])
 def discover():
     conn = dbi.connect()
