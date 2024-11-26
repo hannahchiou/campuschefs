@@ -24,6 +24,10 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
+    ''''
+    Our homepage. This page will eventually get the cookie information from 
+    our users (just 'Guest' right now for draft purposes)
+    '''
     username = request.cookies.get('username', 'Guest')
     uid = request.cookies.get('uid', 1)
     return render_template('main.html', username=username, uid = uid, 
@@ -31,6 +35,10 @@ def index():
 
 @app.route('/setcookie')
 def set_cookie():
+    '''
+    Sets cookie with username and uid information. Will be expanded
+    on in future versions
+    '''
     username = 'Guest User' 
     uid = 1  
 
@@ -49,11 +57,23 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size: 16MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
+    '''
+    Checks that the file is a png, jpg, jpeg, or gif, so it 
+    can be properly rendered on our html page.
+    '''
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
+    '''
+    For GET: assumes that this is the first time a user is posting their recipe.
+    Displays our recipe form HTM (see templates folder) for them to fill out 
+
+    For POST: collects the form information, inserts it into our SQL database,
+    and displays it as a recipe post. Redirects users to the recipe post once it 
+    is successfully inserted. 
+    '''
     conn = dbi.connect()
 
     if request.method == 'GET':
@@ -68,7 +88,7 @@ def recipeform():
         price = request.form.get('price')
         size = request.form.get('size')
         tags = request.form.getlist('tags')
-        # convert tags to a comma separated string for SET
+        # Convert tags to a comma separated string for SET
         if isinstance(tags, list):
             tags = ','.join(tags)
         description = request.form.get('description')
@@ -94,7 +114,8 @@ def recipeform():
             })
             index += 1
 
-        # checking for various errors with uploaded file
+        # Uploading our image and saving the photo url to be inserted 
+        # on the HTML page
         file = request.files.get('cover-photo')
         photo_url = None
         if file and allowed_file(file.filename):
@@ -103,7 +124,8 @@ def recipeform():
             file.save(file_path)
             photo_url = url_for('static', filename=f'uploads/{filename}')
 
-        # insert the recipe if it is valid; get the post id to render the post
+        # Inserts the recipe if it is valid; gets the post id to render the post
+        # in post form 
         last_insert = helper.insertRecipe(conn, 
                             uid = request.cookies.get('uid'), 
                             post_date = post_date,
@@ -118,7 +140,7 @@ def recipeform():
                             tags = tags,
                             price = price)
             
-        # insert the ingredients
+        # Insert the ingredients
         index = 0
         while True:
             # Dynamically access each row of ingredients
@@ -134,12 +156,18 @@ def recipeform():
                                 measurement = measurement)
             index += 1
         
-        # redirect to recipe/post_id
+        # Redirect to recipe/post_id
         return redirect(url_for('recipepost', post_id = last_insert))
     
-# recipe post
 @app.route('/recipepost/<post_id>', methods = ['GET','POST'])
 def recipepost(post_id):
+    '''
+    For GET: displays the post information, if the post id is valid.
+
+    For POST: a user can either update or delete their post. If DELETE
+    is chosen, the post is deleted and a message is flashed. If UPDATE
+    is chosen, the user is redirected to the update page. 
+    '''
     conn = dbi.connect()
 
     if request.method == 'GET':
@@ -170,9 +198,10 @@ def recipepost(post_id):
                                steps = post['steps'].split('\n'),
                                ingredients = ingredients,
                                photo_url = photo_url)
+    
     if request.method == 'POST':
         response = request.form.get('submit')
-
+        # check what the button chosen is
         if response == "update":
             return redirect(url_for('updatepost',post_id = post_id))
 
@@ -183,6 +212,14 @@ def recipepost(post_id):
 
 @app.route('/updatepost/<post_id>',methods = ['GET','POST'])
 def updatepost(post_id):
+    '''
+    For GET: displays a form similar to the original recipe form post,
+    but some of the fields are autopopulated with the previous information,
+    similar to CRUD.
+
+    For POST: updates the recipe and ingredient information in the backend 
+    and redirects the user to the recipe post with the new information.
+    '''
     conn = dbi.connect()
     if request.method == 'GET':
         # Autopopulate update form with previous info, similar to CRUD
