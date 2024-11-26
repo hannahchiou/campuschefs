@@ -187,32 +187,38 @@ def recipepost(post_id):
 # TO DO: discover board --> GET render discover board page html, POST search 
 # route here
         
-@app.route('/discover', methods=['GET'])
+@app.route('/discover', methods=['GET','POST'])
 def discover():
     conn = dbi.connect()
     curs = dbi.dict_cursor(conn)
 
     # Retrieve all posts for the initial discover page
-    curs.execute("""
-        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
-        FROM post AS p
-        ORDER BY p.title ASC
-    """)
+    retrieve_posts = helper.get_posts(conn)
     posts = [
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
-        for row in curs.fetchall()
+        for row in retrieve_posts
     ]
 
-    conn.close()
+    #conn.close()
 
     if request.method == 'GET':
-        return render_template('discover.html', posts=posts)
+        search = request.args.get('search')
+        if search: 
+            
+            retrieve_posts = helper.get_search(conn,search)
+            posts = [
+            {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+            for row in retrieve_posts
+            ]
+            return render_template('discover.html', posts=posts)
+
+        else: 
+            return render_template('discover.html', posts=posts)
 
     # If a POST request, handle the tag selection
-    else:
+    if request.method == 'POST':
         tag = request.form.get('tag')
-        if tag:
-            return redirect(url_for('select', tag=tag))
+        return redirect(url_for('select', tag=tag))
 
 
 @app.route('/select/<string:tag>', methods=['GET'])
@@ -221,19 +227,15 @@ def select(tag):
     curs = dbi.dict_cursor(conn)
 
     # Retrieve posts based on the selected tag
-    curs.execute("""
-        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
-        FROM post AS p
-        WHERE p.tags LIKE %s
-    """, [f"%{tag}%"])
+    post_dict = helper.sort_by_tag(conn, tag)
     posts = [
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
-        for row in curs.fetchall()
+        for row in post_dict
     ]
 
     conn.close()
 
-    return render_template('select.html', posts=posts, tag=tag)
+    return render_template('discover.html', posts=posts)
 
 
 # @app.route('/discover', methods=['GET', 'POST'])

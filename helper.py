@@ -61,6 +61,40 @@ def deletePost(conn,pid):
     '''
     curs.execute(sql, [pid])
     conn.commit()  # Commit the deletion of the post
+    
+def get_posts(conn):
+    curs = dbi.dict_cursor(conn)
+    sql = """
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        ORDER BY p.title ASC
+    """
+    curs.execute(sql)
+    conn.commit()
+    return curs.fetchall()
+
+def get_search(conn,search):
+    curs = dbi.dict_cursor(conn)
+    sql = """
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        where p.title LIKE %s
+        ORDER BY p.title ASC
+    """
+    curs.execute(sql, ['%' + search + '%'])
+    conn.commit()
+    return curs.fetchall()
+
+def sort_by_tag(conn, tag):
+    curs = dbi.dict_cursor(conn)
+    sql = """
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        WHERE p.tags LIKE %s
+    """
+    curs.execute(sql, [f"%{tag}%"])
+    conn.commit()
+    return curs.fetchall()
 
 
 if __name__ == '__main__':
