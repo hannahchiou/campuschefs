@@ -45,6 +45,24 @@ def getIngredients(conn,pid):
     curs.execute(sql,[pid])
     return curs.fetchall()
 
+def deletePost(conn,pid):
+    curs = dbi.dict_cursor(conn)
+    sql = '''
+        DELETE FROM ingredient
+        WHERE pid = %s
+    '''
+    curs.execute(sql, [pid])
+    conn.commit()  # Commit the deletion of dependent rows
+
+    # Now delete the post from the 'post' table
+    sql = '''
+        DELETE FROM post
+        WHERE pid = %s
+    '''
+    curs.execute(sql, [pid])
+    conn.commit()  # Commit the deletion of the post
+
+
 if __name__ == '__main__':
     dbi.conf('campuschefs_db')
     conn = dbi.connect()

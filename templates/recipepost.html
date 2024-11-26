@@ -15,7 +15,7 @@
     <div class="right">
         <h1> {{title}} </h1>
         <p style="font-size: 120%;"><b> By </b>{{username}}</p>
-        <p style="font-size: 120%;"><b>Published on </b>{{date}}</p>
+        <p style="font-size: 120%;"><b> Published on </b>{{date}}</p>
         </div>
     </div>
     
@@ -50,10 +50,19 @@
     
 <div class="right">
     <p><b>Steps:</b></p>
-        {% for step in steps %}
-            <p>{{step}} </p>
-        {% endfor %}
-    </div>
+    {% for step in steps %}
+        <p>{{ step }}</p>
+    {% endfor %}
+    
+    <!-- Form to update or delete -->
+    <form method="POST">
+        <input type="submit" name="submit" value="update">
+        <input type="submit" name="submit" value="delete">
+    </form>
+</div>
+    
+
+
 </div>
 
    

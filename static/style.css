@@ -142,7 +142,7 @@ nav button, nav a {
     height: 40px;
     padding: 0px 50px;
     background-color: var(--color-header);
-    border: 2px solid black;
+    border: 2px solid lightgray;
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
@@ -153,7 +153,7 @@ nav button, nav a {
 
 
 nav button:hover, button:focus, nav a:hover, nav a:focus {
-    background-color: var(--color-focus);
+    background-color: #0077b6;
 }
 
 .standard-image {
@@ -167,16 +167,16 @@ nav button:hover, button:focus, nav a:hover, nav a:focus {
 }
 
 ul {
-    list-style-position: inside; /* Ensures bullets are inside the content block */
+    list-style-position: inside; 
     margin-left: 80px; /* Matches the margin of other text elements */
     margin-right: 250px; /* Keeps consistency with other text elements */
-    padding-left: 20px; /* Optional: Adds a bit of space between the bullet and text */
+    padding-left: 20px; 
 }
 
 li {
-    margin-bottom: 8px; /* Adds space between list items for readability */
-    font-size: large; /* Matches the body font size */
-    line-height: 1.5; /* Ensures good vertical spacing */
+    margin-bottom: 8px; 
+    font-size: large; 
+    line-height: 1.5; 
 }
 
 .splitscreen {
@@ -187,14 +187,14 @@ li {
 .splitscreen .left,
 .splitscreen .right {
     flex: 1;
-    margin: 20px 10px; /* Smaller horizontal margins for each section */
+    margin: 20px 10px; 
   }
 
-  .content-box {
-    border: 2px solid #193497; /* Adds a border */
-    border-radius: 10px; /* Optional: Rounded corners */
-    padding: 10px; /* Space inside the box */
-    margin: 10px auto; /* Centers the box and adds space outside */
+.content-box {
+    border: 2px solid #193497; 
+    border-radius: 10px; 
+    padding: 10px; 
+    margin: 10px auto; 
 }
 
 

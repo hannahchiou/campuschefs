@@ -4,7 +4,7 @@
     <meta charset='utf-8'>
     <meta name=author content="Hannah Chiou">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Recipe Form</title>
+    <title>Update Recipe Form</title>
 </head>
 
 {% extends "base.html" %}
@@ -13,18 +13,16 @@
 
 <body>
 
-<h2> Please fill in all forms to post your new recipe to CampusChefs. </h2>
+<h2> Update your CampusChefs recipe here. </h2>
 <p> Post your recipe for other college students to try out and enjoy! </p>
 
 <section>
 
-<form id="recipe-form" method="post" enctype="multipart/form-data" action="{{url_for('recipeform')}}">
+<form id="update-recipe" method="post" enctype="multipart/form-data" action="{{url_for('updatepost',post_id=post_id)}}">
 
 <label for="title"> Recipe title</label>
 <input type="text" id="title" name="title" placeholder="Enter a short recipe title" required>
 
-<!-- TO DO: only certain file types allowed (jpeg, jpg, pdf)-->
-<!-- TO DO: only certain sizes / resolutions of images allowed (eg. 1024px x 2000px)-->
 <p><b>Upload a cover photo (min 400x500px): </b></p>
     <label>Picture: <input type="file" name="cover-photo" required></label>
 

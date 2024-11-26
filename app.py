@@ -1,6 +1,8 @@
 from flask import (Flask, render_template, make_response, url_for, request,
                    redirect, flash, session, send_from_directory, jsonify)
 from werkzeug.utils import secure_filename
+from PIL import Image
+import os
 app = Flask(__name__)
 
 # one or the other of these. Defaults to MySQL (PyMySQL)
@@ -40,6 +42,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size: 16MB
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+MIN_WIDTH = 400
+MIN_HEIGHT = 500
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -88,6 +92,7 @@ def recipeform():
             })
             index += 1
 
+        # checking for various errors with uploaded file
         file = request.files.get('cover-photo')
         photo_url = None
         if file and allowed_file(file.filename):
@@ -96,7 +101,7 @@ def recipeform():
             file.save(file_path)
             photo_url = url_for('static', filename=f'uploads/{filename}')
 
-        # get the post id
+        # insert the recipe if it is valid; get the post id to render the post
         last_insert = helper.insertRecipe(conn, 
                             uid = request.cookies.get('uid'), 
                             post_date = post_date,
@@ -110,9 +115,8 @@ def recipeform():
                             steps = steps,
                             tags = tags,
                             price = price)
-        
-        print(last_insert)
-        
+            
+        # insert the ingredients
         index = 0
         while True:
             # Dynamically access each row of ingredients
@@ -128,14 +132,16 @@ def recipeform():
                                 measurement = measurement)
             index += 1
         print(f"last insert pid is: {last_insert}")
+        
         # redirect to recipe/post_id
         return redirect(url_for('recipepost', post_id = last_insert))
     
 # recipe post
-@app.route('/recipepost/<post_id>', methods = ['GET'])
+@app.route('/recipepost/<post_id>', methods = ['GET','POST'])
 def recipepost(post_id):
+    conn = dbi.connect()
+
     if request.method == 'GET':
-        conn = dbi.connect()
         post = helper.getpost(conn, post_id)
         ingredients = helper.getIngredients(conn, post_id)
 
@@ -143,7 +149,6 @@ def recipepost(post_id):
             flash('''The recipe you requested is not in the database.
                   Please reenter the information.''')
             return redirect(url_for('index'))
-        print(f"The link is: {post['cover_photo']}")
 
         photo_url = post['cover_photo']
         # decode photo if it is in binary
@@ -163,10 +168,21 @@ def recipepost(post_id):
                                steps = post['steps'].split('\n'),
                                ingredients = ingredients,
                                photo_url = photo_url)
+    if request.method == 'POST':
+        response = request.form.get('submit')
+
+        if response == "update":
+            return redirect(url_for('updatepost',post_id = post_id))
+
+        if response == "delete":
+            helper.deletePost(conn,post_id)
+            flash('Your post has been successfully deleted.')
+            return redirect(url_for('index'))
+
 
 # TO DO: update recipe form with form filled out. make new html page for update recipe form
 # route here
-#@app.route('/updatepost/<post_id',methods = ['GET','POST'])
+@app.route('/updatepost/<post_id>',methods = ['GET','POST'])
 
 # TO DO: discover board --> GET render discover board page html, POST search 
 # route here
