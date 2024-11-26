@@ -168,36 +168,102 @@ def recipepost(post_id):
 # route here
 #@app.route('/updatepost/<post_id',methods = ['GET','POST'])
 
-# Discover board --> GET render discover board page html, POST search 
+# TO DO: discover board --> GET render discover board page html, POST search 
+# route here
         
 @app.route('/discover', methods=['GET'])
 def discover():
-    # Connect to the database
     conn = dbi.connect()
     curs = dbi.dict_cursor(conn)
 
-    # Get search term if any
-    search_term = request.args.get('search', '')
+    # Retrieve all posts for the initial discover page
+    curs.execute("""
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        ORDER BY p.title ASC
+    """)
+    posts = [
+        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+        for row in curs.fetchall()
+    ]
 
-    # Create SQL query with filtering if there's a search term
-    if search_term:
-        query = """
-            select p.pid, p.cover_photo, p.text_descrip, p.tags, p.price
-            from post as p
-            where p.title like %s or p.tags like %s or p.price like %s
-        """
-        search_pattern = f"%{search_term}%"
-        curs.execute(query, (search_pattern, search_pattern, search_pattern))
-    else:
-        # Get all posts
-        curs.execute("select p.pid, p.cover_photo, p.text_descrip, p.tags, p.price from post p")
-
-    posts = curs.fetchall()
-
-    # Optionally, add pagination here if necessary
     conn.close()
 
-    return render_template('discover.html', posts=posts)
+    if request.method == 'GET':
+        return render_template('discover.html', posts=posts)
+
+    # If a POST request, handle the tag selection
+    else:
+        tag = request.form.get('tag')
+        if tag:
+            return redirect(url_for('select', tag=tag))
+
+
+@app.route('/select/<string:tag>', methods=['GET'])
+def select(tag):
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+
+    # Retrieve posts based on the selected tag
+    curs.execute("""
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        WHERE p.tags LIKE %s
+    """, [f"%{tag}%"])
+    posts = [
+        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+        for row in curs.fetchall()
+    ]
+
+    conn.close()
+
+    return render_template('select.html', posts=posts, tag=tag)
+
+
+# @app.route('/discover', methods=['GET', 'POST'])
+# def discover():
+#     # Connect to the database
+#     conn = dbi.connect()
+#     curs = dbi.dict_cursor(conn)
+
+#     query = """SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price FROM post AS p"""
+#     params = []
+
+#     # Handle search functionality
+#     if request.method == 'GET':
+#         search_term = str(request.args.get('search', '') or '')
+#         if search_term:
+#             query = """
+#                 SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+#                 FROM post AS p
+#                 WHERE p.title LIKE %s OR p.tags LIKE %s OR p.price LIKE %s
+#             """
+#             search_pattern = f"%{search_term}%"
+#             params = [search_pattern, search_pattern, search_pattern]
+
+#     elif request.method == 'POST':
+#         tag = request.form.get('tag')  
+#         if tag:
+#             query = """
+#                 SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+#                 FROM post AS p
+#                 WHERE p.tags LIKE %s
+#             """
+#             params = [f"%{tag}%"]
+
+#     curs.execute(query, params)
+#     posts = [
+#         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+#         for row in curs.fetchall()
+#     ]
+
+#     conn.close()
+#     return render_template('discover.html', posts=posts)
+
+
+@app.route('/profile', methods=['GET'])
+def profile():
+    return render_template('main.html')
 
 if __name__ == '__main__':
     import sys, os

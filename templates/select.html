@@ -2,8 +2,6 @@
 
 {% block main_content %}
 
-
-
 <h1>Discover Recipes</h1>
 
 <style>
@@ -94,8 +92,6 @@
         border-radius: 4px;
     }
 </style>
-    
-
 
 <div class="search-container">
     <div class="search-bar">
@@ -161,6 +157,7 @@
         </form>
     </div>
 
+
     <div class="recipe-list">
         {% if posts %}
         {% for post in posts %}
@@ -178,15 +175,12 @@
         {% endif %}
     </div>
 
-
-
-
-    <!-- Pagination (optional, if there are many posts) -->
+    <!-- Pagination -->
     {% if posts.has_next %}
     <div class="pagination">
         <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
         <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
     </div>
     {% endif %}
-
-    {% endblock %}
+</div>
+{% endblock %}
