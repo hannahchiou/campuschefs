@@ -67,11 +67,6 @@ def recipeform():
             tags = ','.join(tags)
         description = request.form.get('description')
         steps = request.form.get('steps')
-
-        # Get the current date and time
-        currentDate = datetime.datetime.now()
-        # Format it into 'month-day-year'
-        # post_date = currentDate.strftime("%m-%d-%Y")
         
         # format into datetime format for inserting into database
         post_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -165,7 +160,7 @@ def recipepost(post_id):
                                price = post['price'], size = post['serving_size'],
                                tags = post['tags'], 
                                description = post['text_descrip'], 
-                               steps = post['steps'],
+                               steps = post['steps'].split('\n'),
                                ingredients = ingredients,
                                photo_url = photo_url)
 
@@ -173,8 +168,7 @@ def recipepost(post_id):
 # route here
 #@app.route('/updatepost/<post_id',methods = ['GET','POST'])
 
-# TO DO: discover board --> GET render discover board page html, POST search 
-# route here
+# Discover board --> GET render discover board page html, POST search 
         
 @app.route('/discover', methods=['GET'])
 def discover():

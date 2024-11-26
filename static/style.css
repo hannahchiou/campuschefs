@@ -22,7 +22,9 @@ h1{
     color: #193497;
     margin: 1em auto; /* Centers the heading block itself */
     text-align: center;
+    line-height: 1.2;
 }
+
 h2{
     color: #0077b6;
     font-style: italic;
@@ -153,4 +155,46 @@ nav button, nav a {
 nav button:hover, button:focus, nav a:hover, nav a:focus {
     background-color: var(--color-focus);
 }
+
+.standard-image {
+    width: 500px;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto; /* Center the image */
+    margin-top: 20px;
+    border-radius: 10px; /* Optional: rounded corners */
+}
+
+ul {
+    list-style-position: inside; /* Ensures bullets are inside the content block */
+    margin-left: 80px; /* Matches the margin of other text elements */
+    margin-right: 250px; /* Keeps consistency with other text elements */
+    padding-left: 20px; /* Optional: Adds a bit of space between the bullet and text */
+}
+
+li {
+    margin-bottom: 8px; /* Adds space between list items for readability */
+    font-size: large; /* Matches the body font size */
+    line-height: 1.5; /* Ensures good vertical spacing */
+}
+
+.splitscreen {
+    display: flex;
+    gap: 10px;
+  }
+  
+.splitscreen .left,
+.splitscreen .right {
+    flex: 1;
+    margin: 20px 10px; /* Smaller horizontal margins for each section */
+  }
+
+  .content-box {
+    border: 2px solid #193497; /* Adds a border */
+    border-radius: 10px; /* Optional: Rounded corners */
+    padding: 10px; /* Space inside the box */
+    margin: 10px auto; /* Centers the box and adds space outside */
+}
+
 
