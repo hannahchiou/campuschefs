@@ -99,7 +99,7 @@ def updateIngredients(conn, pid, name, quantity, measurement):
     curs.execute(sql, [name, quantity, measurement, pid])
     conn.commit()
 
-    
+#this function gets all of the post in the database and orders them by title 
 def get_posts(conn):
     curs = dbi.dict_cursor(conn)
     sql = """
@@ -110,7 +110,7 @@ def get_posts(conn):
     curs.execute(sql)
     conn.commit()
     return curs.fetchall()
-
+#this function takes in a search key and retrieves each post that has that search key anywhere in the title
 def get_search(conn,search):
     curs = dbi.dict_cursor(conn)
     sql = """
@@ -122,7 +122,7 @@ def get_search(conn,search):
     curs.execute(sql, ['%' + search + '%'])
     conn.commit()
     return curs.fetchall()
-
+#this function takes in a tag and filters and retrieves all posts that have that tag
 def sort_by_tag(conn, tag):
     curs = dbi.dict_cursor(conn)
     sql = """
@@ -130,7 +130,7 @@ def sort_by_tag(conn, tag):
         FROM post AS p
         WHERE p.tags LIKE %s
     """
-    curs.execute(sql, [f"%{tag}%"])
+    curs.execute(sql,['%'+ tag + '%'])
     conn.commit()
     return curs.fetchall()
 
