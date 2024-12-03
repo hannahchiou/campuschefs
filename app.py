@@ -406,7 +406,7 @@ def select(tag):
 
 @app.route('/profile', methods=['GET'])
 def profile():
-    return render_template('main.html')
+    return render_template('profile.html')
 
 if __name__ == '__main__':
     import sys, os

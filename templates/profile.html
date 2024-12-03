@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+
+
+<head>
+<title> User Login </title>
+</head>
+
+
+
+<div class="w3-bar w3-black">
+  <button class="w3-bar-item w3-button" onclick="openCity('London')">Created</button>
+  <button class="w3-bar-item w3-button" onclick="openCity('Paris')">Saved</button>
+</div>
+
+<div id="London" class="w3-container w3-display-container city">
+  <span onclick="this.parentElement.style.display='none'"
+  class="w3-button w3-large w3-display-topright">&times;</span>
+  <h2>CREATED</h2>
+  <p>POST TO COME</p>
+</div>
+
+<div id="Paris" class="w3-container w3-display-container city" style="display:none">
+  <span onclick="this.parentElement.style.display='none'"
+  class="w3-button w3-large w3-display-topright">&times;</span>
+  <h2>SAVED</h2>
+  <p>POST TO COME</p> 
+</div>
+
+
+
+<script>
+function openCity(cityName) {
+  var i;
+  var x = document.getElementsByClassName("city");
+  for (i = 0; i < x.length; i++) {
+    x[i].style.display = "none";  
+  }
+  document.getElementById(cityName).style.display = "block";  
+}
+</script>
+
+</body>
+</html>
+
+{% endblock %}
