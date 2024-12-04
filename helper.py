@@ -45,22 +45,40 @@ def getIngredients(conn,pid):
     curs.execute(sql,[pid])
     return curs.fetchall()
 
-def deletePost(conn,pid):
-    curs = dbi.dict_cursor(conn)
-    sql = '''
-        DELETE FROM ingredient
-        WHERE pid = %s
-    '''
-    curs.execute(sql, [pid])
-    conn.commit()  # Commit the deletion of dependent rows
+# def deletePost(conn,pid):
+#     curs = dbi.dict_cursor(conn)
+#     sql = '''
+#         DELETE FROM ingredient
+#         WHERE pid = %s
+#     '''
+#     curs.execute(sql, [pid])
+#     conn.commit()  # Commit the deletion of dependent rows
 
-    # Now delete the post from the 'post' table
+#     # Now delete the post from the 'post' table
+#     sql = '''
+#         DELETE FROM post
+#         WHERE pid = %s
+#     '''
+#     curs.execute(sql, [pid])
+#     conn.commit()  # Commit the deletion of the post
+
+def deletePost(conn, pid):
+    curs = dbi.dict_cursor(conn)
     sql = '''
         DELETE FROM post
         WHERE pid = %s
     '''
     curs.execute(sql, [pid])
-    conn.commit()  # Commit the deletion of the post
+    conn.commit()  # Commit the deletion
+
+def deleteIngredients(conn,pid):
+    curs = dbi.dict_cursor(conn)
+    sql = '''
+    DELETE from ingredient
+    WHERE pid = %s
+    '''
+    curs.execute(sql,[pid])
+    conn.commit()
 
 def updateRecipe(conn, pid, title, cover_photo, serving_size, 
                  prep_time, cook_time, total_time, text_descrip, steps, tags, price):
@@ -85,22 +103,11 @@ def updateRecipe(conn, pid, title, cover_photo, serving_size,
                       tags,price,pid])
     conn.commit()
 
-def updateIngredients(conn, pid, name, quantity, measurement):
-    curs = dbi.cursor(conn)
-    print(f"SQL Parameters: pid={pid}, name={name}, quantity={quantity}, measurement={measurement}")
-    sql = '''
-        UPDATE ingredient
-        SET 
-            name = %s,
-            quantity = %s,
-            measurement = %s
-        WHERE pid = %s 
-    '''
-    curs.execute(sql, [name, quantity, measurement, pid])
-    conn.commit()
-
-    
 def get_posts(conn):
+    '''
+    Gets posts' ID, title, cover photo, description (if applicable),
+    tags and price and orders all posts by ascending title
+    '''
     curs = dbi.dict_cursor(conn)
     sql = """
         SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price

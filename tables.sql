@@ -46,7 +46,7 @@ create table post (
 
 create table ingredient (
     pid int,
-    foreign key (pid) references post(pid),
+    FOREIGN KEY (pid) REFERENCES post(pid) ON DELETE CASCADE,
     name varchar(50),
     quantity int,
     measurement varchar(50)

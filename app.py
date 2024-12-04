@@ -97,22 +97,6 @@ def recipeform():
         # format into datetime format for inserting into database
         post_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-         # Collect ingredients
-        ingredients = []
-        index = 0
-        while True:
-            # Dynamically access each row of ingredients
-            quantity = request.form.get(f'ingredients[{index}][quantity]')
-            measurement = request.form.get(f'ingredients[{index}][measurement]')
-            name = request.form.get(f'ingredients[{index}][name]')
-            if not name:  # Stop when no more ingredient names are provided
-                break
-            ingredients.append({
-                'quantity': quantity,
-                'measurement': measurement,
-                'name': name
-            })
-            index += 1
 
         # Uploading our image and saving the photo url to be inserted 
         # on the HTML page
@@ -140,7 +124,7 @@ def recipeform():
                             tags = tags,
                             price = price)
             
-        # Insert the ingredients
+         # Collect ingredients
         index = 0
         while True:
             # Dynamically access each row of ingredients
@@ -157,6 +141,7 @@ def recipeform():
             index += 1
         
         # Redirect to recipe/post_id
+        flash('Your recipe has been successfully inserted into CampusChefs!')
         return redirect(url_for('recipepost', post_id = last_insert))
     
 @app.route('/recipepost/<post_id>', methods = ['GET','POST'])
@@ -181,7 +166,6 @@ def recipepost(post_id):
             return redirect(url_for('index'))
 
         photo_url = post['cover_photo']
-        # decode photo if it is in binary
         if isinstance(photo_url, bytes):
             photo_url = photo_url.decode('utf-8')
 
@@ -254,8 +238,6 @@ def updatepost(post_id):
         description = request.form.get('description')
         steps = request.form.get('steps')
 
-        print('post id: ' + post_id + 'got data')
-
         file = request.files.get('cover-photo')
         photo_url = None
         if file and allowed_file(file.filename):
@@ -269,41 +251,26 @@ def updatepost(post_id):
                             prep_time,cook_time,total_time,
                             description,steps,tags,price)
         
-        # Populating ingredients list from the form
-        ingredients = []
+        # updates ingredients by deleting all ingredients and inserting 
+        # the ingredients entered in the update form
+        helper.deleteIngredients(conn,post_id)
         index = 0
         while True:
+            # Dynamically access each row of ingredients
             quantity = request.form.get(f'ingredients[{index}][quantity]')
             measurement = request.form.get(f'ingredients[{index}][measurement]')
             name = request.form.get(f'ingredients[{index}][name]')
             if not name:  # Stop when no more ingredient names are provided
                 break
-            ingredients.append({
-                'quantity': quantity,
-                'measurement': measurement,
-                'name': name
-            })
+            helper.insertIngredients(conn, 
+                                pid = post_id,
+                                name = name,
+                                quantity = quantity,
+                                measurement = measurement)
             index += 1
-        print("Ingredients to update:", ingredients)  # Debugging step to check populated ingredients
-
-        # Now updating the ingredients based on the populated list
-        for ingredient in ingredients:
-            # Get each ingredient's details
-            name = ingredient['name']
-            quantity = ingredient['quantity']
-            measurement = ingredient['measurement']
-            print(f"Updating ingredient: Name: {name}, Quantity: {quantity}, Measurement: {measurement}")
-            
-            # Update the ingredient in the database
-            helper.updateIngredients(conn, 
-                                    pid=post_id,
-                                    name=name,
-                                    quantity=quantity,
-                                    measurement=measurement)
 
         flash('Your recipe has been successfully updated.')
         return redirect(url_for('recipepost', post_id=post_id))
-
 
 
 # Discover board --> GET render discover board page html, POST search         
