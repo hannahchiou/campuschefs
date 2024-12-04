@@ -273,7 +273,10 @@ def updatepost(post_id):
         return redirect(url_for('recipepost', post_id=post_id))
 
 
-# Discover board --> GET render discover board page html, POST search         
+# Discover board --> GET render discover board page html, POST search    
+# this route uses a helper function to retrieve all posts in the database. This function also handles 
+# when users use the search bar and then uses another function to retrieve all post with the search key in the title
+# It also handles when users choose to filter the posts by tags and redirects the user to the select route. 
 @app.route('/discover', methods=['GET','POST'])
 def discover():
     conn = dbi.connect()
@@ -284,7 +287,9 @@ def discover():
     posts = [
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
         for row in retrieve_posts
-    ]
+    ] 
+    #Since the dictionary of posts contains a bytes object (the cover photo) this converts this into a str object using UTF-8 encoding
+
 
     #conn.close()
 
@@ -307,7 +312,7 @@ def discover():
         tag = request.form.get('tag')
         return redirect(url_for('select', tag=tag))
 
-
+#Still integrated within the discover page ==> gets alls posts that have the selected tag the user choose to filter by
 @app.route('/select/<string:tag>', methods=['GET'])
 def select(tag):
     conn = dbi.connect()
@@ -368,7 +373,7 @@ def select(tag):
 
 @app.route('/profile', methods=['GET'])
 def profile():
-    return render_template('main.html')
+    return render_template('profile.html')
 
 if __name__ == '__main__':
     import sys, os

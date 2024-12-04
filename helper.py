@@ -103,6 +103,21 @@ def updateRecipe(conn, pid, title, cover_photo, serving_size,
                       tags,price,pid])
     conn.commit()
 
+def updateIngredients(conn, pid, name, quantity, measurement):
+    curs = dbi.cursor(conn)
+    print(f"SQL Parameters: pid={pid}, name={name}, quantity={quantity}, measurement={measurement}")
+    sql = '''
+        UPDATE ingredient
+        SET 
+            name = %s,
+            quantity = %s,
+            measurement = %s
+        WHERE pid = %s 
+    '''
+    curs.execute(sql, [name, quantity, measurement, pid])
+    conn.commit()
+
+    
 def get_posts(conn):
     '''
     Gets posts' ID, title, cover photo, description (if applicable),
@@ -117,7 +132,7 @@ def get_posts(conn):
     curs.execute(sql)
     conn.commit()
     return curs.fetchall()
-
+#this function takes in a search key and retrieves each post that has that search key anywhere in the title
 def get_search(conn,search):
     curs = dbi.dict_cursor(conn)
     sql = """
@@ -129,7 +144,7 @@ def get_search(conn,search):
     curs.execute(sql, ['%' + search + '%'])
     conn.commit()
     return curs.fetchall()
-
+#this function takes in a tag and filters and retrieves all posts that have that tag
 def sort_by_tag(conn, tag):
     curs = dbi.dict_cursor(conn)
     sql = """
@@ -137,7 +152,7 @@ def sort_by_tag(conn, tag):
         FROM post AS p
         WHERE p.tags LIKE %s
     """
-    curs.execute(sql, [f"%{tag}%"])
+    curs.execute(sql,['%'+ tag + '%'])
     conn.commit()
     return curs.fetchall()
 
