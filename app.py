@@ -2,6 +2,7 @@ from flask import (Flask, render_template, make_response, url_for, request,
                    redirect, flash, session, send_from_directory, jsonify)
 from werkzeug.utils import secure_filename
 from PIL import Image
+import bcrypt
 import os
 app = Flask(__name__)
 
@@ -28,6 +29,7 @@ def index():
     Our homepage. This page will eventually get the cookie information from 
     our users (just 'Guest' right now for draft purposes)
     '''
+    
     username = request.cookies.get('username', 'Guest')
     uid = request.cookies.get('uid', 1)
     return render_template('main.html', username=username, uid = uid, 
@@ -64,6 +66,79 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# route creating an account
+@app.route('/register/', methods = ['GET','POST'])
+def register():
+    if request.method == "GET":
+        return render_template('register.html')  # Show the register  page
+    conn = dbi.connect()
+    name = request.form.get('name')
+    username = request.form.get('username')
+    password1 = request.form.get('password1')
+    password2 = request.form.get('password2')
+    if password1 != password2:
+        flash('Please enter matching passwords.')
+        return redirect( url_for('register'))
+    
+    # Hash the password
+    hashed = bcrypt.hashpw(password1.encode('utf-8'),
+                          bcrypt.gensalt())
+    stored = hashed.decode('utf-8')
+
+    # Call the helper function to insert the new user
+    result = helper.insertUser(conn, username, stored, name)
+
+    if result["success"]:
+        flash(result["message"])
+        return redirect(url_for('login'))
+    else:
+        flash(result["message"])
+        return redirect(url_for('register'))
+
+#route for logging in
+@app.route('/login/', methods=['GET','POST'])
+def login():
+    if request.method == "GET":
+        return render_template('login.html')  # Show the login page
+    
+    username = request.form.get('username')
+    password = request.form.get('password')
+    conn = dbi.connect()
+    result = helper.getUser(conn, username)
+    if result is None:
+        flash('Login incorrect, please try again or register.')
+        return redirect(url_for('login'))
+    storedPass = result['password']
+    # encode and decode passwords to check if they match
+    hashed = bcrypt.hashpw(password.encode('utf-8'), storedPass.encode('utf-8'))
+    hashed_string = hashed.decode('utf-8')
+    if hashed_string == storedPass:
+    # is this %s necessary; probably not
+        flash('Successfully logged in as %s' % username)
+        session['username'] = username
+        session['uid'] = result['uid']
+        session['logged_in'] = True
+        print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+        # session['visits'] = 1
+        return redirect(url_for('index'))
+    else: 
+        flash('Login incorrect. Please try again or register')
+        return redirect(url_for('index'))
+    
+@app.route('/logout/')
+def logout():
+    print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+    if 'username' in session:
+        username = session['username']
+        session.pop('username')
+        session.pop('uid')
+        session.pop('logged_in')
+        flash('You have been successfully logged out')
+        return redirect(url_for('index'))
+    else: 
+        flash('You are not logged in. Please login or register')
+        return redirect(url_for('index'))
+    
 @app.route('/recipeform/', methods = ['GET','POST'])
 def recipeform():
     '''

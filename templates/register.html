@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+    <form id="register" method="POST" action="{{ url_for('register') }}">
+        <h3>Sign Up</h3>
+        
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your first and last name" required>
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+        <label for="password">Password</label>
+        <input type="text" id="password1" name="password1" placeholder="Enter your password" required>
+
+        <label for="password">Confirm Password</label>
+        <input type="text" id="password2" name="password2" placeholder="Re-enter your password" required>
+
+        <p><input type="submit" value="Register"></p>
+    </form>
+{% endblock %}

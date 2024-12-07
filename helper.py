@@ -1,5 +1,28 @@
 # helper functions
 import cs304dbi as dbi
+import pymysql #for integrityError error checking
+
+
+# insert new user info and password into the database
+# when they first register just set username and password 
+def insertUser(conn, username, passwd, name):
+    try: 
+        curs = dbi.cursor(conn)
+        curs.execute('''INSERT INTO user(username, password, name) VALUES(%s,%s,%s)''',
+                     [username, passwd, name])
+        conn.commit()
+        return {"success": True, "message": "User inserted successfully."}
+    except pymysql.IntegrityError:
+        return {"success": False, "message": "Username already exists. Please choose a different username."}
+    except Exception as err:
+        return {"success": False, "message": f"Something went wrong: {repr(err)}"}
+    
+# get a uid and pssword given username
+def getUser(conn, username):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT uid, password FROM user WHERE username = %s''',[username])
+    return curs.fetchone()
+
 
 # inserts a new recipe into the database
 def insertRecipe(conn, uid, post_date, title, cover_photo, serving_size, 

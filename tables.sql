@@ -16,7 +16,13 @@ create table user (
     email_addr varchar(50),
     name varchar(30),
     school varchar(30),
-    user_bio varchar(300)
+    user_bio varchar(300),
+    -- for logins and passwords
+    -- password is hashed
+    username varchar(50),
+    password char(60),
+    unique(username),
+    index(username)
 );
 
 create table follow (
