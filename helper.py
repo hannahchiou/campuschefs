@@ -17,10 +17,17 @@ def insertUser(conn, username, passwd, name):
     except Exception as err:
         return {"success": False, "message": f"Something went wrong: {repr(err)}"}
     
-# get a uid and pssword given username
+def getRecipesByUser(conn, uid):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT pid, title, cover_photo, text_descrip 
+                    FROM post 
+                    WHERE uid = %s''', [uid])
+    return curs.fetchall()
+
+# get a uid, name and password password given username
 def getUser(conn, username):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''SELECT uid, password FROM user WHERE username = %s''',[username])
+    curs.execute('''SELECT uid, name, password FROM user WHERE username = %s''',[username])
     return curs.fetchone()
 
 

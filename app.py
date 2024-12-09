@@ -448,7 +448,25 @@ def select(tag):
 
 @app.route('/profile', methods=['GET'])
 def profile():
-    return render_template('profile.html')
+    conn = dbi.connect()
+    username = session.get('username')
+    if not username:
+        flash('Please log in to access your profile.')
+        return redirect(url_for('login'))
+    user_query = helper.getUser(conn, username)
+    user = {
+        'name': user_query['name'],
+        'username': username
+    }
+    #user_recipes = helper.getRecipesByUser(conn, user_query['uid'])
+    user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
+    recipes = [
+        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+        for row in user_recipes
+    ]
+
+    return render_template('profile.html', user=user, recipes=recipes)
+
 
 if __name__ == '__main__':
     import sys, os
