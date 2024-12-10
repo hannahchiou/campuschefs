@@ -418,7 +418,6 @@ def profile():
     }
     #user_recipes = helper.getRecipesByUser(conn, user_query['uid'])
     user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
-    #Helps decode images so that they are able to be passed to the front end 
     recipes = [
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
         for row in user_recipes
