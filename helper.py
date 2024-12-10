@@ -16,7 +16,7 @@ def insertUser(conn, username, passwd, name):
         return {"success": False, "message": "Username already exists. Please choose a different username."}
     except Exception as err:
         return {"success": False, "message": f"Something went wrong: {repr(err)}"}
-    
+ #given a uid- get all the post made by that user/uid   
 def getRecipesByUser(conn, uid):
     curs = dbi.dict_cursor(conn)
     curs.execute('''SELECT pid, title, cover_photo, text_descrip 
