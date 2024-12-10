@@ -186,7 +186,7 @@ def recipeform():
         # Inserts the recipe if it is valid; gets the post id to render the post
         # in post form 
         last_insert = helper.insertRecipe(conn, 
-                            uid = request.cookies.get('uid'), 
+                            uid = session.get('uid'), 
                             post_date = post_date,
                             title = title,
                             cover_photo = photo_url,
