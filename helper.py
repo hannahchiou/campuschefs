@@ -186,6 +186,29 @@ def sort_by_tag(conn, tag):
     conn.commit()
     return curs.fetchall()
 
+# Combined helper function to like or unlike a post and return the updated like count
+def toggle_like(conn, uid, pid):
+    # Check if the user has already liked the post
+    query = "SELECT 1 FROM likes WHERE uid = %s AND pid = %s"
+    result = dbi.query(conn, query, [uid, pid])
+
+    # If the user has liked the post, remove the like
+    if result:
+        query = "DELETE FROM likes WHERE uid = %s AND pid = %s"
+        dbi.query(conn, query, [uid, pid])
+        action = 'unliked'
+    else:
+        # If the user hasn't liked the post, add a like
+        query = "INSERT INTO likes (uid, pid) VALUES (%s, %s)"
+        dbi.query(conn, query, [uid, pid])
+        action = 'liked'
+
+    # Get the updated like count
+    query = "SELECT COUNT(*) FROM likes WHERE pid = %s"
+    like_count = dbi.query(conn, query, [pid])
+    like_count = like_count[0]['COUNT(*)'] if like_count else 0
+
+    return action, like_count
 
 if __name__ == '__main__':
     dbi.conf('campuschefs_db')

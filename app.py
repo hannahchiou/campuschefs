@@ -404,48 +404,6 @@ def select(tag):
 
     return render_template('discover.html', posts=posts)
 
-
-# @app.route('/discover', methods=['GET', 'POST'])
-# def discover():
-#     # Connect to the database
-#     conn = dbi.connect()
-#     curs = dbi.dict_cursor(conn)
-
-#     query = """SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price FROM post AS p"""
-#     params = []
-
-#     # Handle search functionality
-#     if request.method == 'GET':
-#         search_term = str(request.args.get('search', '') or '')
-#         if search_term:
-#             query = """
-#                 SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
-#                 FROM post AS p
-#                 WHERE p.title LIKE %s OR p.tags LIKE %s OR p.price LIKE %s
-#             """
-#             search_pattern = f"%{search_term}%"
-#             params = [search_pattern, search_pattern, search_pattern]
-
-#     elif request.method == 'POST':
-#         tag = request.form.get('tag')  
-#         if tag:
-#             query = """
-#                 SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
-#                 FROM post AS p
-#                 WHERE p.tags LIKE %s
-#             """
-#             params = [f"%{tag}%"]
-
-#     curs.execute(query, params)
-#     posts = [
-#         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
-#         for row in curs.fetchall()
-#     ]
-
-#     conn.close()
-#     return render_template('discover.html', posts=posts)
-
-
 @app.route('/profile', methods=['GET'])
 def profile():
     conn = dbi.connect()
@@ -466,6 +424,25 @@ def profile():
     ]
 
     return render_template('profile.html', user=user, recipes=recipes)
+
+@app.route('/like_post/<int:pid>', methods=['POST'])
+def like_post_route(pid):
+    if 'uid' not in session:
+        flash('You must be logged in to like a post.')
+        return redirect(url_for('login'))
+
+    uid = session['uid']
+    conn = dbi.connect()
+
+    # Call the combined toggle_like function
+    action, like_count = helper.toggle_like(conn, uid, pid)
+
+    if action == 'liked':
+        flash('You have liked this post.')
+    else:
+        flash('You have unliked this post.')
+
+    return redirect(url_for('discover'))
 
 
 if __name__ == '__main__':
