@@ -188,26 +188,27 @@ def sort_by_tag(conn, tag):
 
 # Combined helper function to like or unlike a post and return the updated like count
 def toggle_like(conn, uid, pid):
+    """Toggle the like status for a given post."""
+    cursor = conn.cursor()
+    
     # Check if the user has already liked the post
-    query = "SELECT 1 FROM likes WHERE uid = %s AND pid = %s"
-    result = dbi.query(conn, query, [uid, pid])
+    cursor.execute('SELECT COUNT(*) FROM likes WHERE uid = ? AND pid = ?', (uid, pid))
+    already_liked = cursor.fetchone()[0] > 0
 
-    # If the user has liked the post, remove the like
-    if result:
-        query = "DELETE FROM likes WHERE uid = %s AND pid = %s"
-        dbi.query(conn, query, [uid, pid])
+    if already_liked:
+        # If already liked, un-like the post
+        cursor.execute('DELETE FROM likes WHERE uid = ? AND pid = ?', (uid, pid))
         action = 'unliked'
     else:
-        # If the user hasn't liked the post, add a like
-        query = "INSERT INTO likes (uid, pid) VALUES (%s, %s)"
-        dbi.query(conn, query, [uid, pid])
+        # If not liked, add the like
+        cursor.execute('INSERT INTO likes (uid, pid) VALUES (?, ?)', (uid, pid))
         action = 'liked'
 
     # Get the updated like count
-    query = "SELECT COUNT(*) FROM likes WHERE pid = %s"
-    like_count = dbi.query(conn, query, [pid])
-    like_count = like_count[0]['COUNT(*)'] if like_count else 0
-
+    cursor.execute('SELECT COUNT(*) FROM likes WHERE pid = ?', (pid,))
+    like_count = cursor.fetchone()[0]
+    
+    conn.commit()  # Commit the transaction
     return action, like_count
 
 if __name__ == '__main__':
