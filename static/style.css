@@ -37,6 +37,11 @@ p{
     margin-right: 250px;
     margin-left: 80px;
 }
+
+#register {
+    margin-right: 250px;
+    margin-left: 80px;
+}
 footer {
     background-color: #193497; 
     color: #F9F6ef; 
@@ -198,3 +203,107 @@ li {
 }
 
 
+/* General container styling */
+.search-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Space between search bar and dropdown container */
+}
+
+/* Dropdown container */
+.dropdown-container {
+    display: flex;
+    gap: 15px;
+    /* Space between dropdown items */
+    flex-wrap: wrap;
+    /* Allow wrapping for smaller screens */
+    position: relative;
+    /* Ensure dropdown content is positioned correctly */
+    margin-bottom: 30px;
+    /* Space below the dropdowns and above the recipe list */
+}
+
+/* Dropdown styling */
+.dropdown {
+    position: relative;
+    /* Position relative to parent for dropdown content */
+}
+
+.dropbtn {
+    font-size: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+/* CSS for the Discover Page below #/
+
+/* Dropdown content styling */
+.dropdown-content {
+    display: none;
+    /* Hidden by default */
+    position: absolute;
+    top: 40px;
+    /* Position below the button */
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    /* Ensure it appears above other elements */
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    /* Show dropdown on hover */
+}
+
+/* Links inside the dropdown */
+.dropdown-content button {
+    background: none;
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    text-align: left;
+    color: #333;
+    cursor: pointer;
+    width: 100%;
+}
+
+.dropdown-content button:hover {
+    background-color: #f0f0f0;
+}
+
+/* Recipe list */
+.recipe-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* Space between recipe cards */
+    justify-content: flex-start;
+}
+
+/* Recipe card styling */
+.recipe-card {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    width: 200px;
+    text-align: center;
+}
+
+/* Recipe images */
+.recipe-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+#discover {
+    text-decoration: underline; 
+    color: #D24C67;
+}
