@@ -170,15 +170,16 @@
             </h3>
             <img src="{{ post['cover_photo'] }}" alt="{{ post['title'] }} cover photo" class="recipe-img" />
             
+            <!-- Like button with data attributes -->
             <button class="like-btn" 
                 data-pid="{{ post['pid'] }}"
-                data-liked="{{ post['liked'] }}"
-                onclick="toggleLike({{ post['pid'] }}, '{{ post['liked'] }}')">
-            {% if post['liked'] %}
-            ❤️ Liked ({{ post['like_count'] }})
-            {% else %}
-            ♡ Like ({{ post['like_count'] }})
-            {% endif %}
+                data-liked="{{ post['liked'] | default(False) | tojson | lower }}"
+                onclick="toggleLike({{ post['pid'] }}, {{ post['liked'] | default(False) | tojson | lower }})">
+                {% if post['liked'] %}
+                    ❤️ Liked ({{ post['like_count'] }})
+                {% else %}
+                    ♡ Like ({{ post['like_count'] }})
+                {% endif %}
             </button>
         </div>
         {% endfor %}
@@ -186,8 +187,6 @@
         <p>No posts available.</p>
         {% endif %}
     </div>
-
-
 
 
     <!-- Pagination (optional, if there are many posts) -->

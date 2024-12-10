@@ -411,22 +411,18 @@ def profile():
 
 @app.route('/like_post/<int:pid>', methods=['POST'])
 def like_post_route(pid):
-    if 'uid' not in session:
-        flash('You must be logged in to like a post.')
-        return redirect(url_for('login'))
+    uid = session.get('uid')  # Get current user ID
+    if not uid:
+        return jsonify({'error': 'User not logged in'}), 401
 
-    uid = session['uid']
-    conn = dbi.connect()
+    conn = dbi.connect()  # Connect to the database
+    action, like_count = toggle_like(conn, uid, pid)  # Use helper function to toggle like status
 
-    # Call the combined toggle_like function
-    action, like_count = helper.toggle_like(conn, uid, pid)
+    return jsonify({
+        'action': action,  # 'liked' or 'unliked'
+        'like_count': like_count  # The updated like count after toggling
+    })
 
-    if action == 'liked':
-        flash('You have liked this post.')
-    else:
-        flash('You have unliked this post.')
-
-    return redirect(url_for('discover'))
 
 
 if __name__ == '__main__':
