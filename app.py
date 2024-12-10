@@ -229,12 +229,7 @@ def recipepost(post_id):
             photo_url = photo_url.decode('utf-8')
 
         return render_template('recipepost.html',
-<<<<<<< HEAD
                                username= helper.getUser_byID(conn,post['uid'])['username'],
-=======
-                               page_title= "Recipe Post",
-                               username=session.get('username', 'username'), 
->>>>>>> 08affadb724ad15359f0539ab024cfd4256acb8a
                                title = post['title'],
                                date = post['post_date'],
                                prep_time = post['prep_time'],
