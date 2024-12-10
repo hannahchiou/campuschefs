@@ -88,7 +88,7 @@ def login():
     username = request.form.get('username')
     password = request.form.get('password')
     conn = dbi.connect()
-    result = helper.getUser(conn, username)
+    result = helper.getUserInfo(conn, username)
     if result is None:
         flash('Login incorrect, please try again or register.')
         return redirect(url_for('login'))
@@ -229,7 +229,7 @@ def recipepost(post_id):
             photo_url = photo_url.decode('utf-8')
 
         return render_template('recipepost.html',
-                               username=session.get('username', 'username'), 
+                               username= helper.getUser_byID(conn,post['uid'])['username'],
                                title = post['title'],
                                date = post['post_date'],
                                prep_time = post['prep_time'],
@@ -394,7 +394,7 @@ def profile():
     if request.method == 'GET':
         conn = dbi.connect()
         username = session.get('username')
-        user_dict = helper.getUser(conn, username)
+        user_dict = helper.getUserInfo(conn, username)
         user = {
             'name': user_dict['name'],
             'username': username

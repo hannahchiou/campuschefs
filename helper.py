@@ -25,9 +25,14 @@ def getRecipesByUser(conn, uid):
     return curs.fetchall()
 
 # get a uid, name and password password given username
-def getUser(conn, username):
+def getUserInfo(conn, username):
     curs = dbi.dict_cursor(conn)
     curs.execute('''SELECT uid, name, password FROM user WHERE username = %s''',[username])
+    return curs.fetchone()
+#get username by using the id 
+def getUser_byID(conn, uid):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT username FROM user WHERE uid = %s''',[uid])
     return curs.fetchone()
 
 
