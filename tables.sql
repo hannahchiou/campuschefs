@@ -3,6 +3,7 @@ use campuschefs_db;
 -- Drop the tables in the correct order
 drop table if exists conversation;
 drop table if exists comment;
+drop table if exists likes;
 drop table if exists images;
 drop table if exists board;
 drop table if exists ingredient;
@@ -62,6 +63,14 @@ create table images (
     image_id int auto_increment primary key,
     pid int,
     photo varchar(500),
+    foreign key (pid) references post(pid)
+);
+
+create table likes (
+    uid int,
+    pid int,
+    primary key (uid, pid),
+    foreign key (uid) references user(uid),
     foreign key (pid) references post(pid)
 );
 

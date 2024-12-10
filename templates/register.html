@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+<!-- override the navigation because we don't want users to access it -->
+{% block nav %}
+{% endblock %}
 
 {% block main_content %}
     <form id="register" method="POST" action="{{ url_for('register') }}">
