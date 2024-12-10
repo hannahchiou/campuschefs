@@ -5,7 +5,7 @@
 /* For flashed messages; make them stand out using red and italics */
 
 #messages {
-    color: red;
+    color: #B22222;
     font-style: italic;
 }
 

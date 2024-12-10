@@ -16,7 +16,9 @@ def insertUser(conn, username, passwd, name):
         return {"success": False, "message": "Username already exists. Please choose a different username."}
     except Exception as err:
         return {"success": False, "message": f"Something went wrong: {repr(err)}"}
- #given a uid- get all the post made by that user/uid   
+
+
+#given a uid- get all the post made by that user/uid   
 def getRecipesByUser(conn, uid):
     curs = dbi.dict_cursor(conn)
     curs.execute('''SELECT pid, title, cover_photo, text_descrip 
@@ -57,7 +59,9 @@ def insertIngredients(conn, pid, name, quantity, measurement):
 
 def getPost(conn,pid):
     '''
-    Returns all information from a given recipe post
+    Returns all information from a given recipe post.
+    SELECT * is relevant here because we are displaying
+    all information about a recipe on the front end. 
     '''
     curs = dbi.dict_cursor(conn)
     sql = '''
@@ -70,7 +74,9 @@ def getPost(conn,pid):
 
 def getIngredients(conn,pid):
     '''
-    Returns all ingredients from a given recipe post
+    Returns all ingredients from a given recipe post.
+    SELECT * is relevant here because we are displaying
+    all information about each ingredient on the front end recipe. 
     '''
     curs = dbi.dict_cursor(conn)
     sql = '''
@@ -80,24 +86,11 @@ def getIngredients(conn,pid):
     curs.execute(sql,[pid])
     return curs.fetchall()
 
-# def deletePost(conn,pid):
-#     curs = dbi.dict_cursor(conn)
-#     sql = '''
-#         DELETE FROM ingredient
-#         WHERE pid = %s
-#     '''
-#     curs.execute(sql, [pid])
-#     conn.commit()  # Commit the deletion of dependent rows
-
-#     # Now delete the post from the 'post' table
-#     sql = '''
-#         DELETE FROM post
-#         WHERE pid = %s
-#     '''
-#     curs.execute(sql, [pid])
-#     conn.commit()  # Commit the deletion of the post
-
 def deletePost(conn, pid):
+    '''
+    Deletes a post and all information (eg. recipes)
+    associated with it (tables set up with CASCADE).
+    '''
     curs = dbi.dict_cursor(conn)
     sql = '''
         DELETE FROM post
@@ -107,6 +100,10 @@ def deletePost(conn, pid):
     conn.commit()  # Commit the deletion
 
 def deleteIngredients(conn,pid):
+    '''
+    Deletes all ingredients; used for deleting
+    and reinserting ingredients during update.
+    '''
     curs = dbi.dict_cursor(conn)
     sql = '''
     DELETE from ingredient
@@ -117,6 +114,9 @@ def deleteIngredients(conn,pid):
 
 def updateRecipe(conn, pid, title, cover_photo, serving_size, 
                  prep_time, cook_time, total_time, text_descrip, steps, tags, price):
+    '''
+    Updates all information from a recipe.
+    '''
     curs = dbi.cursor(conn)
     sql = '''
         UPDATE post
@@ -139,8 +139,11 @@ def updateRecipe(conn, pid, title, cover_photo, serving_size,
     conn.commit()
 
 def updateIngredients(conn, pid, name, quantity, measurement):
+    '''
+    Updates one ingredient for a given recipe, used in a loop
+    to update all ingredients in app.py.
+    '''
     curs = dbi.cursor(conn)
-    print(f"SQL Parameters: pid={pid}, name={name}, quantity={quantity}, measurement={measurement}")
     sql = '''
         UPDATE ingredient
         SET 
@@ -167,6 +170,7 @@ def get_posts(conn):
     curs.execute(sql)
     conn.commit()
     return curs.fetchall()
+
 #this function takes in a search key and retrieves each post that has that search key anywhere in the title
 def get_search(conn,search):
     curs = dbi.dict_cursor(conn)
@@ -179,6 +183,7 @@ def get_search(conn,search):
     curs.execute(sql, ['%' + search + '%'])
     conn.commit()
     return curs.fetchall()
+
 #this function takes in a tag and filters and retrieves all posts that have that tag
 def sort_by_tag(conn, tag):
     curs = dbi.dict_cursor(conn)

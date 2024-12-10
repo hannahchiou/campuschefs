@@ -229,7 +229,12 @@ def recipepost(post_id):
             photo_url = photo_url.decode('utf-8')
 
         return render_template('recipepost.html',
+<<<<<<< HEAD
                                username= helper.getUser_byID(conn,post['uid'])['username'],
+=======
+                               page_title= "Recipe Post",
+                               username=session.get('username', 'username'), 
+>>>>>>> 08affadb724ad15359f0539ab024cfd4256acb8a
                                title = post['title'],
                                date = post['post_date'],
                                prep_time = post['prep_time'],
@@ -273,6 +278,7 @@ def updatepost(post_id):
         print(id)
 
         return render_template('updatepost.html',
+                               post_title = "Update Post",
                                post_id = id,
                                title=recipe['title'],
                                cover_photo=recipe['cover_photo'],
@@ -386,7 +392,7 @@ def select(tag):
 
     conn.close()
 
-    return render_template('discover.html', posts=posts)
+    return render_template('discover.html', page_title="Discover Page", posts=posts)
 #This is our profile route, it takes information from the session to form the front end. It does this by taking the 
 #the username in the session and then performing a query to retrieve all post made by that user .
 @app.route('/profile', methods=['GET', 'POST'])
