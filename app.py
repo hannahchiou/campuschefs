@@ -170,7 +170,7 @@ def recipeform():
         # Inserts the recipe if it is valid; gets the post id to render the post
         # in post form 
         last_insert = helper.insertRecipe(conn, 
-                            uid = request.cookies.get('uid'), 
+                            uid = session.get('uid'), 
                             post_date = post_date,
                             title = title,
                             cover_photo = photo_url,
@@ -392,22 +392,20 @@ def select(tag):
 def profile():
     if request.method == 'GET':
         conn = dbi.connect()
+        uid = session.get('uid')
         username = session.get('username')
-        if not username:
-            flash('Please log in to access your profile.')
-            return redirect(url_for('login'))
-        user_query = helper.getUser(conn, username)
+        user_dict = helper.getUser(conn, username)
         user = {
-            'name': user_query['name'],
+            'name': user_dict['name'],
             'username': username
         }
-        #user_recipes = helper.getRecipesByUser(conn, user_query['uid'])
-        user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
+        user_recipes = helper.getRecipesByUser(conn, user_dict['uid'])
+        #user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
         recipes = [
             {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
             for row in user_recipes
             ]
-        return render_template('profile.html', user=user, recipes=recipes)
+        return render_template('profile.html',page_title="Profile Page", user=user, recipes=recipes)
     if request.method == 'POST':
         return redirect(url_for('logout'))
 
