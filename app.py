@@ -27,29 +27,13 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 def index():
     ''''
     Our homepage. This page will eventually get the cookie information from 
-    our users (just 'Guest' right now for draft purposes)
+    our users 
     '''
-    
-    username = request.cookies.get('username', 'Guest')
-    uid = request.cookies.get('uid', 1)
-    return render_template('main.html', username=username, uid = uid, 
+    username = session.get('username')
+    if not username:
+        return redirect(url_for('login'))
+    return render_template('main.html', username=username,
                            page_title = 'home page')
-
-@app.route('/setcookie')
-def set_cookie():
-    '''
-    Sets cookie with username and uid information. Will be expanded
-    on in future versions
-    '''
-    username = 'Guest User' 
-    uid = 1  
-
-    # Set the cookies with username and uid
-    response = make_response("Cookies have been set!")
-    response.set_cookie('username', username)
-    response.set_cookie('uid', str(uid))  
-
-    return response
 
 # Configure the upload folder and allowed extensions
 UPLOAD_FOLDER = 'static/uploads'
@@ -70,7 +54,7 @@ def allowed_file(filename):
 @app.route('/register/', methods = ['GET','POST'])
 def register():
     if request.method == "GET":
-        return render_template('register.html')  # Show the register  page
+        return render_template('register.html',  page_title = 'registration page')  # Show the register  page
     conn = dbi.connect()
     name = request.form.get('name')
     username = request.form.get('username')
@@ -89,7 +73,7 @@ def register():
     result = helper.insertUser(conn, username, stored, name)
 
     if result["success"]:
-        flash(result["message"])
+        flash("Your profile has been created. Please log in now")
         return redirect(url_for('login'))
     else:
         flash(result["message"])
@@ -99,7 +83,7 @@ def register():
 @app.route('/login/', methods=['GET','POST'])
 def login():
     if request.method == "GET":
-        return render_template('login.html')  # Show the login page
+        return render_template('login.html',  page_title = 'login page')  # Show the login page
     
     username = request.form.get('username')
     password = request.form.get('password')
@@ -152,7 +136,7 @@ def recipeform():
     conn = dbi.connect()
 
     if request.method == 'GET':
-        return render_template('recipeform.html')
+        return render_template('recipeform.html', page_title = "Form Page")
     
     if request.method == 'POST':
          # Get basic form data
@@ -377,10 +361,10 @@ def discover():
             {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
             for row in retrieve_posts
             ]
-            return render_template('discover.html', posts=posts)
+            return render_template('discover.html', page_title="Search Page", posts=posts)
 
         else: 
-            return render_template('discover.html', posts=posts)
+            return render_template('discover.html', page_title="Search Page", posts=posts)
 
     # If a POST request, handle the tag selection
     if request.method == 'POST':
@@ -404,26 +388,28 @@ def select(tag):
 
     return render_template('discover.html', posts=posts)
 
-@app.route('/profile', methods=['GET'])
+@app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    conn = dbi.connect()
-    username = session.get('username')
-    if not username:
-        flash('Please log in to access your profile.')
-        return redirect(url_for('login'))
-    user_query = helper.getUser(conn, username)
-    user = {
-        'name': user_query['name'],
-        'username': username
-    }
-    #user_recipes = helper.getRecipesByUser(conn, user_query['uid'])
-    user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
-    recipes = [
-        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
-        for row in user_recipes
-    ]
-
-    return render_template('profile.html', user=user, recipes=recipes)
+    if request.method == 'GET':
+        conn = dbi.connect()
+        username = session.get('username')
+        if not username:
+            flash('Please log in to access your profile.')
+            return redirect(url_for('login'))
+        user_query = helper.getUser(conn, username)
+        user = {
+            'name': user_query['name'],
+            'username': username
+        }
+        #user_recipes = helper.getRecipesByUser(conn, user_query['uid'])
+        user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
+        recipes = [
+            {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+            for row in user_recipes
+            ]
+        return render_template('profile.html', user=user, recipes=recipes)
+    if request.method == 'POST':
+        return redirect(url_for('logout'))
 
 @app.route('/like_post/<int:pid>', methods=['POST'])
 def like_post_route(pid):
