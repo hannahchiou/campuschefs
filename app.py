@@ -229,7 +229,7 @@ def recipepost(post_id):
             photo_url = photo_url.decode('utf-8')
 
         return render_template('recipepost.html',
-                               username=request.cookies.get('username', 'Guest'), 
+                               username=session.get('username', 'username'), 
                                title = post['title'],
                                date = post['post_date'],
                                prep_time = post['prep_time'],
