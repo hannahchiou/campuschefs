@@ -387,12 +387,12 @@ def select(tag):
     conn.close()
 
     return render_template('discover.html', posts=posts)
-
+#This is our profile route, it takes information from the session to form the front end. It does this by taking the 
+#the username in the session and then performing a query to retrieve all post made by that user .
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     if request.method == 'GET':
         conn = dbi.connect()
-        uid = session.get('uid')
         username = session.get('username')
         user_dict = helper.getUser(conn, username)
         user = {
@@ -401,6 +401,7 @@ def profile():
         }
         user_recipes = helper.getRecipesByUser(conn, user_dict['uid'])
         #user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
+        #The usage of v.decode decodes the image bytes.
         recipes = [
             {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
             for row in user_recipes
