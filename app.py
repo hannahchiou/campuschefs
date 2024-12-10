@@ -55,7 +55,7 @@ def allowed_file(filename):
 @app.route('/register/', methods = ['GET','POST'])
 def register():
     if request.method == "GET":
-        return render_template('register.html')  # Show the register  page
+        return render_template('register.html',  page_title = 'registration page')  # Show the register  page
     conn = dbi.connect()
     name = request.form.get('name')
     username = request.form.get('username')
@@ -84,7 +84,7 @@ def register():
 @app.route('/login/', methods=['GET','POST'])
 def login():
     if request.method == "GET":
-        return render_template('login.html')  # Show the login page
+        return render_template('login.html',  page_title = 'login page')  # Show the login page
     
     username = request.form.get('username')
     password = request.form.get('password')
@@ -137,7 +137,7 @@ def recipeform():
     conn = dbi.connect()
 
     if request.method == 'GET':
-        return render_template('recipeform.html')
+        return render_template('recipeform.html', page_title = "Form Page")
     
     if request.method == 'POST':
          # Get basic form data
@@ -362,10 +362,10 @@ def discover():
             {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
             for row in retrieve_posts
             ]
-            return render_template('discover.html', posts=posts)
+            return render_template('discover.html', page_title="Search Page", posts=posts)
 
         else: 
-            return render_template('discover.html', posts=posts)
+            return render_template('discover.html', page_title="Search Page", posts=posts)
 
     # If a POST request, handle the tag selection
     if request.method == 'POST':
@@ -388,9 +388,8 @@ def select(tag):
     conn.close()
 
     return render_template('discover.html', posts=posts)
-#This route uses the session data to do a series of queries to get information regarding the user 
-# it displays the posts that the user has posted and sends them a link to their post
-@app.route('/profile', methods=['GET'])
+
+@app.route('/profile', methods=['GET', 'POST'])
 def profile():
     if request.method == 'GET':
         conn = dbi.connect()
@@ -406,7 +405,7 @@ def profile():
             {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
             for row in user_recipes
         ]
-        return render_template('profile.html', user=user, recipes=recipes)
+        return render_template('profile.html', page_title="Profile Page", user=user, recipes=recipes)
     if request.method == 'POST':
          return redirect(url_for('logout'))
 
