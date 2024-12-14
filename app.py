@@ -216,6 +216,8 @@ def recipepost(post_id):
 
     if request.method == 'GET':
         post = helper.getPost(conn, post_id)
+        post_owner_id = post['uid']
+        current_user = session.get('uid')
         ingredients = helper.getIngredients(conn, post_id)
         print(ingredients)
 
@@ -240,7 +242,8 @@ def recipepost(post_id):
                                description = post['text_descrip'], 
                                steps = post['steps'].split('\n'),
                                ingredients = ingredients,
-                               photo_url = photo_url)
+                               photo_url = photo_url,
+                               is_owner = (current_user == post_owner_id))
     
     if request.method == 'POST':
         response = request.form.get('submit')
@@ -264,15 +267,18 @@ def updatepost(post_id):
     and redirects the user to the recipe post with the new information.
     '''
     conn = dbi.connect()
+    
     if request.method == 'GET':
         # Autopopulate update form with previous info, similar to CRUD
         recipe = helper.getPost(conn,post_id)
-        ingredients = helper.getIngredients(conn,post_id)
-        print('this post id is' + post_id)
-        id = post_id 
-        print(id)
-
-        return render_template('updatepost.html',
+        current_user = session.get('uid')
+        if recipe['uid'] == current_user: 
+            ingredients = helper.getIngredients(conn,post_id)
+            print('this post id is' + post_id)
+            id = post_id 
+            print(id)
+        
+            return render_template('updatepost.html',
                                post_title = "Update Post",
                                post_id = id,
                                title=recipe['title'],
@@ -282,6 +288,9 @@ def updatepost(post_id):
                                ingredients=ingredients,
                                steps=recipe['steps'],
                                description=recipe['text_descrip'])
+        else: 
+            flash('you do not have access to update this post')
+            return redirect(url_for('index'))
     
     if request.method == 'POST':
          # Get basic form data
