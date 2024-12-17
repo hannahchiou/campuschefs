@@ -346,41 +346,29 @@ def updatepost(post_id):
 # this route uses a helper function to retrieve all posts in the database. This function also handles 
 # when users use the search bar and then uses another function to retrieve all post with the search key in the title
 # It also handles when users choose to filter the posts by tags and redirects the user to the select route. 
-@app.route('/discover', methods=['GET','POST'])
+@app.route('/discover', methods=['GET'])
 def discover():
     conn = dbi.connect()
-    curs = dbi.dict_cursor(conn)
+    search_query = request.args.get('search')  # Search query from URL
+    tag_filter = request.args.get('tag')       # Tag filter from URL
 
-    # Retrieve all posts for the initial discover page
-    retrieve_posts = helper.get_posts(conn)
+    # If search query exists, filter by search
+    if search_query:
+        retrieve_posts = helper.get_search(conn, search_query)
+    # If tag filter exists, filter by tag
+    elif tag_filter:
+        retrieve_posts = helper.sort_by_tag(conn, tag_filter)
+    else:
+        retrieve_posts = helper.get_posts(conn)  # Default to all posts
+
+    # For decoding byte-like objects
     posts = [
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
         for row in retrieve_posts
-    ] 
-    #Since the dictionary of posts contains a bytes object (the cover photo) this converts this into a str object using UTF-8 encoding
+    ]
 
-
-    #conn.close()
-
-    if request.method == 'GET':
-        search = request.args.get('search')
-        if search: 
-            
-            retrieve_posts = helper.get_search(conn,search)
-            posts = [
-            {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
-            for row in retrieve_posts
-            ]
-            return render_template('discover.html', page_title="Search Page", posts=posts)
-
-        else: 
-            return render_template('discover.html', page_title="Search Page", posts=posts)
-
-    # If a POST request, handle the tag selection
-    if request.method == 'POST':
-        tag = request.form.get('tag')
-        return redirect(url_for('select', tag=tag))
-
+    return render_template('discover.html', page_title="Discover Recipes", posts=posts)
+    
 #Still integrated within the discover page ==> gets alls posts that have the selected tag the user choose to filter by
 @app.route('/select/<string:tag>', methods=['GET'])
 def select(tag):

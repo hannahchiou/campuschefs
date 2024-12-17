@@ -17,7 +17,7 @@
         <div class="dropdown">
             <label for="season-options" class="dropbtn">📆 season</label>
             <div id="season-options" class="dropdown-content">
-                <form method="POST" action="{{ url_for('discover') }}">
+                <form method="GET" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="fall">Fall</button>
                     <button type="submit" name="tag" value="spring">Spring</button>
                     <button type="submit" name="tag" value="summer">Summer</button>
@@ -29,7 +29,7 @@
         <div class="dropdown">
             <label for="courses-options" class="dropbtn">🍴 course</label>
             <div id="course-options" class="dropdown-content">
-                <form method="POST" action="{{ url_for('discover') }}">
+                <form method="GET" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="breakfast">Breakfast</button>
                     <button type="submit" name="tag" value="brunch">Brunch</button>
                     <button type="submit" name="tag" value="lunch">Lunch</button>
@@ -43,7 +43,7 @@
         <div class="dropdown">
             <label for="dietary-options" class="dropbtn">🥑 dietary</label>
             <div id="course-options" class="dropdown-content">
-                <form method="POST" action="{{ url_for('discover') }}">
+                <form method="GET" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="dairy-free">Dairy-Free</button>
                     <button type="submit" name="tag" value="gluten-free">Gluten-Free</button>
                     <button type="submit" name="tag" value="nut-free">Nut-Free</button>
@@ -56,7 +56,7 @@
         <div class="dropdown">
             <label for="convenience-options" class="dropbtn">🕒 convenience</label>
             <div id="course-options" class="dropdown-content">
-                <form method="POST" action="{{ url_for('discover') }}">
+                <form method="GET" action="{{ url_for('discover') }}">
                     <button type="submit" name="tag" value="quick-meal">Quick-Meal</button>
                     <button type="submit" name="tag" value="meal-prep">Meal-Prep</button>
                     <button type="submit" name="tag" value="comfort-food">Comfort-Food</button>
