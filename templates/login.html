@@ -4,20 +4,26 @@
 {% endblock %}
 
 {% block main_content %}
-    <form id="login" method="POST" action="{{ url_for('login') }}">
-        <h2>Log In</h2>
-        
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+<form id="login" method="POST" action="{{ url_for('login') }}">
+    <h2>Log In</h2>
+    
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" placeholder="Enter your username" required>
 
-        <label for="password">Password</label>
-        <input type="text" id="password" name="password" placeholder="Enter your password" required>
+    <label for="password1">Password</label>
+    <div class="password-container">
+        <input type="password" id="password1" name="password1" placeholder="Enter your password" required>
+        <i class="bi bi-eye-slash togglePassword"></i>
+    </div>
 
-        <p><input type="submit" value="Log In"></p>
+    <p><input type="submit" value="Log In"></p>
 
-        <h2>Don't have an account?</h2>
-        <a id="register" href="{{ url_for('register') }}">Sign Up</a>
-    </form>
+    <h2>Don't have an account?</h2>
+    <a id="register" href="{{ url_for('register') }}">Sign Up</a>
+</form>
+<script src="{{ url_for('static', filename='password.js') }}" defer></script>
+
+
 {% endblock %}
 
 

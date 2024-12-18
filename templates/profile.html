@@ -2,32 +2,52 @@
 
 {% block main_content %}
 <style> 
-.profile-pic {
-    width: 80px;
-    height: 80px;
-    background-color: #96478b;
-    border-radius: 50%; /* Makes the element circular */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    font-weight: bold;
-    color: white;
-    margin-left: auto;
-    border: 3px solid #6b8af0; /* Add circular border */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for a better look */
-}
-.user-recipes {
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .profile-header {
+        display: flex;
+        flex-direction: row; /* Aligns items side by side */
+        align-items: flex-start; /* Aligns items to the top */
+        gap: 15px; /* Adds space between the picture and text */
+    }
+    
+    .profile-pic {
+        width: 100px;
+        height: 100px;
+        margin-left: 300px;
+        margin-top: 20px;
+        background-color: #96478b;
+        border-radius: 50%; /* Makes the element circular */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: bold;
+        color: white;
+        border: 3px solid #6b8af0; /* Add circular border */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for a better look */
+    }
+    
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-recipes {
         margin-top: 30px;
     }
-
+    
     .recipes-grid {
         display: flex;
         flex-wrap: wrap;
         gap: 20px; /* Space between recipe cards */
         justify-content: flex-start;
     }
-
+    
     .recipe-card {
         width: 300px;
         background-color: white;
@@ -36,14 +56,15 @@
         text-align: left;
         padding: 10px;
     }
-
+    
     .recipe-img {
         width: 100%;
         height: 150px;
         object-fit: cover;
         border-radius: 4px;
     }
-</style>
+    </style>
+
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-pic">
@@ -52,6 +73,7 @@
         <div class="profile-info">
             <h2>{{ user.name }}</h2>
             <p>Username: {{ user.username }}</p>
+            <p>School: {{user.school}} </p>
         </div>
     </div>
 

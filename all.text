@@ -1,0 +1,2092 @@
+====================== app.py =====================
+from flask import (Flask, render_template, make_response, url_for, request,
+                   redirect, flash, session, send_from_directory, jsonify)
+from werkzeug.utils import secure_filename
+from PIL import Image
+import bcrypt
+import os
+app = Flask(__name__)
+
+# one or the other of these. Defaults to MySQL (PyMySQL)
+# change comment characters to switch to SQLite
+
+import cs304dbi as dbi
+# import cs304dbi_sqlite3 as dbi
+import datetime
+import helper
+
+import secrets
+
+app.secret_key = 'your secret here'
+# replace that with a random key
+app.secret_key = secrets.token_hex()
+
+# This gets us better error messages for certain common request errors
+app.config['TRAP_BAD_REQUEST_ERRORS'] = True
+
+@app.route('/')
+def index():
+    ''''
+    Our homepage. This page will eventually get the cookie information from 
+    our users 
+    '''
+    username = session.get('username')
+    if not username:
+        return redirect(url_for('login'))
+    return render_template('main.html', username=username,
+                           page_title = 'home page')
+
+# Configure the upload folder and allowed extensions
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max file size: 16MB
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    '''
+    Checks that the file is a png, jpg, jpeg, or gif, so it 
+    can be properly rendered on our html page.
+    '''
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# route creating an account
+@app.route('/register/', methods = ['GET','POST'])
+def register():
+    if request.method == "GET":
+        return render_template('register.html',  page_title = 'registration page')  # Show the register  page
+    conn = dbi.connect()
+    name = request.form.get('name')
+    username = request.form.get('username')
+    password1 = request.form.get('password1')
+    password2 = request.form.get('password2')
+    if password1 != password2:
+        flash('Please enter matching passwords.')
+        return redirect( url_for('register'))
+    
+    # Hash the password
+    hashed = bcrypt.hashpw(password1.encode('utf-8'),
+                          bcrypt.gensalt())
+    stored = hashed.decode('utf-8')
+
+    # Call the helper function to insert the new user
+    result = helper.insertUser(conn, username, stored, name)
+
+    if result["success"]:
+        flash("Your profile has been created. Please log in now")
+        return redirect(url_for('login'))
+    else:
+        flash(result["message"])
+        return redirect(url_for('register'))
+
+#route for logging in
+@app.route('/login/', methods=['GET','POST'])
+def login():
+    if request.method == "GET":
+        return render_template('login.html',  page_title = 'login page')  # Show the login page
+    
+    username = request.form.get('username')
+    password = request.form.get('password')
+    conn = dbi.connect()
+    result = helper.getUserInfo(conn, username)
+    if result is None:
+        flash('Login incorrect, please try again or register.')
+        return redirect(url_for('login'))
+    storedPass = result['password']
+    # encode and decode passwords to check if they match
+    hashed = bcrypt.hashpw(password.encode('utf-8'), storedPass.encode('utf-8'))
+    hashed_string = hashed.decode('utf-8')
+    if hashed_string == storedPass:
+    # is this %s necessary; probably not
+        flash('Successfully logged in as %s' % username)
+        session['username'] = username
+        session['uid'] = result['uid']
+        session['logged_in'] = True
+        print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+        # session['visits'] = 1
+        return redirect(url_for('index'))
+    else: 
+        flash('Login incorrect. Please try again or register')
+        return redirect(url_for('index'))
+    
+@app.route('/logout/')
+def logout():
+    print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+    if 'username' in session:
+        username = session['username']
+        session.pop('username')
+        session.pop('uid')
+        session.pop('logged_in')
+        flash('You have been successfully logged out')
+        return redirect(url_for('index'))
+    else: 
+        flash('You are not logged in. Please login or register')
+        return redirect(url_for('index'))
+    
+@app.route('/recipeform/', methods = ['GET','POST'])
+def recipeform():
+    '''
+    For GET: assumes that this is the first time a user is posting their recipe.
+    Displays our recipe form HTM (see templates folder) for them to fill out 
+
+    For POST: collects the form information, inserts it into our SQL database,
+    and displays it as a recipe post. Redirects users to the recipe post once it 
+    is successfully inserted. 
+    '''
+    conn = dbi.connect()
+
+    if request.method == 'GET':
+        return render_template('recipeform.html', page_title = "Form Page")
+    
+    if request.method == 'POST':
+         # Get basic form data
+        title = request.form.get('title')
+        prep_time = int(request.form.get('prep-time', 0))
+        cook_time = int(request.form.get('cook-time', 0))
+        total_time = prep_time + cook_time
+        price = request.form.get('price')
+        size = request.form.get('size')
+        tags = request.form.getlist('tags')
+        # Convert tags to a comma separated string for SET
+        if isinstance(tags, list):
+            tags = ','.join(tags)
+        description = request.form.get('description')
+        steps = request.form.get('steps')
+        
+        # format into datetime format for inserting into database
+        post_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+        # Uploading our image and saving the photo url to be inserted 
+        # on the HTML page
+        file = request.files.get('cover-photo')
+        photo_url = None
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            photo_url = url_for('static', filename=f'uploads/{filename}')
+
+        # Inserts the recipe if it is valid; gets the post id to render the post
+        # in post form 
+        last_insert = helper.insertRecipe(conn, 
+                            uid = session.get('uid'), 
+                            post_date = post_date,
+                            title = title,
+                            cover_photo = photo_url,
+                            serving_size = size,
+                            prep_time = prep_time,
+                            cook_time = cook_time,
+                            total_time = total_time,
+                            text_descrip = description,
+                            steps = steps,
+                            tags = tags,
+                            price = price)
+            
+         # Collect ingredients
+        index = 0
+        while True:
+            # Dynamically access each row of ingredients
+            quantity = request.form.get(f'ingredients[{index}][quantity]')
+            measurement = request.form.get(f'ingredients[{index}][measurement]')
+            name = request.form.get(f'ingredients[{index}][name]')
+            if not name:  # Stop when no more ingredient names are provided
+                break
+            helper.insertIngredients(conn, 
+                                pid = last_insert,
+                                name = name,
+                                quantity = quantity,
+                                measurement = measurement)
+            index += 1
+        
+        # Redirect to recipe/post_id
+        flash('Your recipe has been successfully inserted into CampusChefs!')
+        return redirect(url_for('recipepost', post_id = last_insert))
+    
+@app.route('/recipepost/<post_id>', methods = ['GET','POST'])
+def recipepost(post_id):
+    '''
+    For GET: displays the post information, if the post id is valid.
+
+    For POST: a user can either update or delete their post. If DELETE
+    is chosen, the post is deleted and a message is flashed. If UPDATE
+    is chosen, the user is redirected to the update page. 
+    '''
+    conn = dbi.connect()
+
+    if request.method == 'GET':
+        post = helper.getPost(conn, post_id)
+        ingredients = helper.getIngredients(conn, post_id)
+        print(ingredients)
+
+        if not post: 
+            flash('''The recipe you requested is not in the database.
+                  Please reenter the information.''')
+            return redirect(url_for('index'))
+
+        photo_url = post['cover_photo']
+        if isinstance(photo_url, bytes):
+            photo_url = photo_url.decode('utf-8')
+
+        return render_template('recipepost.html',
+                               username= helper.getUser_byID(conn,post['uid'])['username'],
+                               title = post['title'],
+                               date = post['post_date'],
+                               prep_time = post['prep_time'],
+                               cook_time = post['cook_time'],
+                               total_time = post['total_time'],
+                               price = post['price'], size = post['serving_size'],
+                               tags = post['tags'], 
+                               description = post['text_descrip'], 
+                               steps = post['steps'].split('\n'),
+                               ingredients = ingredients,
+                               photo_url = photo_url)
+    
+    if request.method == 'POST':
+        response = request.form.get('submit')
+        # check what the button chosen is
+        if response == "update":
+            return redirect(url_for('updatepost',post_id = post_id))
+
+        if response == "delete":
+            helper.deletePost(conn,post_id)
+            flash('Your post has been successfully deleted.')
+            return redirect(url_for('index'))
+
+@app.route('/updatepost/<post_id>',methods = ['GET','POST'])
+def updatepost(post_id):
+    '''
+    For GET: displays a form similar to the original recipe form post,
+    but some of the fields are autopopulated with the previous information,
+    similar to CRUD.
+
+    For POST: updates the recipe and ingredient information in the backend 
+    and redirects the user to the recipe post with the new information.
+    '''
+    conn = dbi.connect()
+    if request.method == 'GET':
+        # Autopopulate update form with previous info, similar to CRUD
+        recipe = helper.getPost(conn,post_id)
+        ingredients = helper.getIngredients(conn,post_id)
+        print('this post id is' + post_id)
+        id = post_id 
+        print(id)
+
+        return render_template('updatepost.html',
+                               post_title = "Update Post",
+                               post_id = id,
+                               title=recipe['title'],
+                               cover_photo=recipe['cover_photo'],
+                               prep_time=recipe['prep_time'],
+                               cook_time=recipe['cook_time'],
+                               ingredients=ingredients,
+                               steps=recipe['steps'],
+                               description=recipe['text_descrip'])
+    
+    if request.method == 'POST':
+         # Get basic form data
+        title = request.form.get('title')
+        prep_time = int(request.form.get('prep-time', 0))
+        cook_time = int(request.form.get('cook-time', 0))
+        total_time = prep_time + cook_time
+        price = request.form.get('price')
+        size = request.form.get('size')
+        tags = request.form.getlist('tags')
+        # convert tags to a comma separated string for SET
+        if isinstance(tags, list):
+            tags = ','.join(tags)
+        description = request.form.get('description')
+        steps = request.form.get('steps')
+
+        file = request.files.get('cover-photo')
+        photo_url = None
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            photo_url = url_for('static', filename=f'uploads/{filename}')
+
+        # update the recipes
+        helper.updateRecipe(conn,post_id,title,photo_url,size,
+                            prep_time,cook_time,total_time,
+                            description,steps,tags,price)
+        
+        # updates ingredients by deleting all ingredients and inserting 
+        # the ingredients entered in the update form
+        helper.deleteIngredients(conn,post_id)
+        index = 0
+        while True:
+            # Dynamically access each row of ingredients
+            quantity = request.form.get(f'ingredients[{index}][quantity]')
+            measurement = request.form.get(f'ingredients[{index}][measurement]')
+            name = request.form.get(f'ingredients[{index}][name]')
+            if not name:  # Stop when no more ingredient names are provided
+                break
+            helper.insertIngredients(conn, 
+                                pid = post_id,
+                                name = name,
+                                quantity = quantity,
+                                measurement = measurement)
+            index += 1
+
+        flash('Your recipe has been successfully updated.')
+        return redirect(url_for('recipepost', post_id=post_id))
+
+
+# Discover board --> GET render discover board page html, POST search    
+# this route uses a helper function to retrieve all posts in the database. This function also handles 
+# when users use the search bar and then uses another function to retrieve all post with the search key in the title
+# It also handles when users choose to filter the posts by tags and redirects the user to the select route. 
+@app.route('/discover', methods=['GET','POST'])
+def discover():
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+
+    # Retrieve all posts for the initial discover page
+    retrieve_posts = helper.get_posts(conn)
+    posts = [
+        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+        for row in retrieve_posts
+    ] 
+    #Since the dictionary of posts contains a bytes object (the cover photo) this converts this into a str object using UTF-8 encoding
+
+
+    #conn.close()
+
+    if request.method == 'GET':
+        search = request.args.get('search')
+        if search: 
+            
+            retrieve_posts = helper.get_search(conn,search)
+            posts = [
+            {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+            for row in retrieve_posts
+            ]
+            return render_template('discover.html', page_title="Search Page", posts=posts)
+
+        else: 
+            return render_template('discover.html', page_title="Search Page", posts=posts)
+
+    # If a POST request, handle the tag selection
+    if request.method == 'POST':
+        tag = request.form.get('tag')
+        return redirect(url_for('select', tag=tag))
+
+#Still integrated within the discover page ==> gets alls posts that have the selected tag the user choose to filter by
+@app.route('/select/<string:tag>', methods=['GET'])
+def select(tag):
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+
+    # Retrieve posts based on the selected tag
+    post_dict = helper.sort_by_tag(conn, tag)
+    posts = [
+        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+        for row in post_dict
+    ]
+
+    conn.close()
+
+    return render_template('discover.html', page_title="Discover Page", posts=posts)
+#This is our profile route, it takes information from the session to form the front end. It does this by taking the 
+#the username in the session and then performing a query to retrieve all post made by that user .
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if request.method == 'GET':
+        conn = dbi.connect()
+        username = session.get('username')
+        user_dict = helper.getUserInfo(conn, username)
+        user = {
+            'name': user_dict['name'],
+            'username': username
+        }
+        user_recipes = helper.getRecipesByUser(conn, user_dict['uid'])
+        #user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
+        #The usage of v.decode decodes the image bytes.
+        recipes = [
+            {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+            for row in user_recipes
+            ]
+        return render_template('profile.html',page_title="Profile Page", user=user, recipes=recipes)
+    if request.method == 'POST':
+        return redirect(url_for('logout'))
+
+@app.route('/like_post/<int:pid>', methods=['POST'])
+def like_post_route(pid):
+    if 'uid' not in session:
+        flash('You must be logged in to like a post.')
+        return redirect(url_for('login'))
+
+    uid = session['uid']
+    conn = dbi.connect()
+
+    # Call the combined toggle_like function
+    action, like_count = helper.toggle_like(conn, uid, pid)
+
+    if action == 'liked':
+        flash('You have liked this post.')
+    else:
+        flash('You have unliked this post.')
+
+    return redirect(url_for('discover'))
+
+
+if __name__ == '__main__':
+    import sys, os
+    if len(sys.argv) > 1:
+        # arg, if any, is the desired port number
+        port = int(sys.argv[1])
+        assert(port>1024)
+    else:
+        port = os.getuid()
+    # set this local variable to 'wmdb' or your personal or team db
+    db_to_use = 'campuschefs_db' 
+    print(f'will connect to {db_to_use}')
+    dbi.conf(db_to_use)
+    app.debug = True
+    app.run('0.0.0.0',port)
+
+====================== helper.py =====================
+# helper functions
+import cs304dbi as dbi
+import pymysql #for integrityError error checking
+
+
+# insert new user info and password into the database
+# when they first register just set username and password 
+def insertUser(conn, username, passwd, name):
+    try: 
+        curs = dbi.cursor(conn)
+        curs.execute('''INSERT INTO user(username, password, name) VALUES(%s,%s,%s)''',
+                     [username, passwd, name])
+        conn.commit()
+        return {"success": True, "message": "User inserted successfully."}
+    except pymysql.IntegrityError:
+        return {"success": False, "message": "Username already exists. Please choose a different username."}
+    except Exception as err:
+        return {"success": False, "message": f"Something went wrong: {repr(err)}"}
+
+
+#given a uid- get all the post made by that user/uid   
+def getRecipesByUser(conn, uid):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT pid, title, cover_photo, text_descrip 
+                    FROM post 
+                    WHERE uid = %s''', [uid])
+    return curs.fetchall()
+
+# get a uid, name and password password given username
+def getUserInfo(conn, username):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT uid, name, password FROM user WHERE username = %s''',[username])
+    return curs.fetchone()
+#get username by using the id 
+def getUser_byID(conn, uid):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT username FROM user WHERE uid = %s''',[uid])
+    return curs.fetchone()
+
+
+# inserts a new recipe into the database
+def insertRecipe(conn, uid, post_date, title, cover_photo, serving_size, 
+                 prep_time, cook_time, total_time, text_descrip, steps, tags, price):
+    curs = dbi.cursor(conn)
+    curs.execute('''insert into post(uid, post_date, title, cover_photo, serving_size, prep_time, 
+                 cook_time, total_time, text_descrip, steps, price, tags)
+                 values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
+                 [uid,post_date,title,cover_photo,serving_size,prep_time,cook_time,total_time,
+                    text_descrip, steps, price, tags])
+    conn.commit()
+    return curs.lastrowid 
+
+# insert the ingredients for the recipe
+def insertIngredients(conn, pid, name, quantity, measurement):
+    curs = dbi.cursor(conn)
+    curs.execute('''insert into ingredient(pid, name, quantity, measurement) 
+                 values (%s, %s, %s, %s)''', [pid, name, quantity, measurement]) 
+    conn.commit()
+
+def getPost(conn,pid):
+    '''
+    Returns all information from a given recipe post.
+    SELECT * is relevant here because we are displaying
+    all information about a recipe on the front end. 
+    '''
+    curs = dbi.dict_cursor(conn)
+    sql = '''
+        SELECT *
+        FROM post
+        WHERE pid = %s
+    '''
+    curs.execute(sql,[pid])
+    return curs.fetchone()
+
+def getIngredients(conn,pid):
+    '''
+    Returns all ingredients from a given recipe post.
+    SELECT * is relevant here because we are displaying
+    all information about each ingredient on the front end recipe. 
+    '''
+    curs = dbi.dict_cursor(conn)
+    sql = '''
+          SELECT * 
+          FROM ingredient
+          WHERE pid = %s'''
+    curs.execute(sql,[pid])
+    return curs.fetchall()
+
+def deletePost(conn, pid):
+    '''
+    Deletes a post and all information (eg. recipes)
+    associated with it (tables set up with CASCADE).
+    '''
+    curs = dbi.dict_cursor(conn)
+    sql = '''
+        DELETE FROM post
+        WHERE pid = %s
+    '''
+    curs.execute(sql, [pid])
+    conn.commit()  # Commit the deletion
+
+def deleteIngredients(conn,pid):
+    '''
+    Deletes all ingredients; used for deleting
+    and reinserting ingredients during update.
+    '''
+    curs = dbi.dict_cursor(conn)
+    sql = '''
+    DELETE from ingredient
+    WHERE pid = %s
+    '''
+    curs.execute(sql,[pid])
+    conn.commit()
+
+def updateRecipe(conn, pid, title, cover_photo, serving_size, 
+                 prep_time, cook_time, total_time, text_descrip, steps, tags, price):
+    '''
+    Updates all information from a recipe.
+    '''
+    curs = dbi.cursor(conn)
+    sql = '''
+        UPDATE post
+        SET 
+            title = %s,
+            cover_photo = %s,
+            serving_size = %s,
+            prep_time = %s,
+            cook_time = %s,
+            total_time = %s, 
+            text_descrip = %s,
+            steps = %s,
+            tags = %s,
+            price = %s
+        WHERE pid = %s
+    '''
+    curs.execute(sql,[title,cover_photo,serving_size,prep_time,
+                      cook_time,total_time,text_descrip,steps,
+                      tags,price,pid])
+    conn.commit()
+
+def updateIngredients(conn, pid, name, quantity, measurement):
+    '''
+    Updates one ingredient for a given recipe, used in a loop
+    to update all ingredients in app.py.
+    '''
+    curs = dbi.cursor(conn)
+    sql = '''
+        UPDATE ingredient
+        SET 
+            name = %s,
+            quantity = %s,
+            measurement = %s
+        WHERE pid = %s 
+    '''
+    curs.execute(sql, [name, quantity, measurement, pid])
+    conn.commit()
+
+    
+def get_posts(conn):
+    '''
+    Gets posts' ID, title, cover photo, description (if applicable),
+    tags and price and orders all posts by ascending title
+    '''
+    curs = dbi.dict_cursor(conn)
+    sql = """
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        ORDER BY p.title ASC
+    """
+    curs.execute(sql)
+    conn.commit()
+    return curs.fetchall()
+
+#this function takes in a search key and retrieves each post that has that search key anywhere in the title
+def get_search(conn,search):
+    curs = dbi.dict_cursor(conn)
+    sql = """
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        where p.title LIKE %s
+        ORDER BY p.title ASC
+    """
+    curs.execute(sql, ['%' + search + '%'])
+    conn.commit()
+    return curs.fetchall()
+
+#this function takes in a tag and filters and retrieves all posts that have that tag
+def sort_by_tag(conn, tag):
+    curs = dbi.dict_cursor(conn)
+    sql = """
+        SELECT p.pid, p.title, p.cover_photo, p.text_descrip, p.tags, p.price
+        FROM post AS p
+        WHERE p.tags LIKE %s
+    """
+    curs.execute(sql,['%'+ tag + '%'])
+    conn.commit()
+    return curs.fetchall()
+
+# Combined helper function to like or unlike a post and return the updated like count
+def toggle_like(conn, uid, pid):
+    # Check if the user has already liked the post
+    query = "SELECT 1 FROM likes WHERE uid = %s AND pid = %s"
+    result = dbi.query(conn, query, [uid, pid])
+
+    # If the user has liked the post, remove the like
+    if result:
+        query = "DELETE FROM likes WHERE uid = %s AND pid = %s"
+        dbi.query(conn, query, [uid, pid])
+        action = 'unliked'
+    else:
+        # If the user hasn't liked the post, add a like
+        query = "INSERT INTO likes (uid, pid) VALUES (%s, %s)"
+        dbi.query(conn, query, [uid, pid])
+        action = 'liked'
+
+    # Get the updated like count
+    query = "SELECT COUNT(*) FROM likes WHERE pid = %s"
+    like_count = dbi.query(conn, query, [pid])
+    like_count = like_count[0]['COUNT(*)'] if like_count else 0
+
+    return action, like_count
+
+if __name__ == '__main__':
+    dbi.conf('campuschefs_db')
+    conn = dbi.connect()
+====================== tables.sql =====================
+use campuschefs_db;
+
+-- Drop the tables in the correct order
+drop table if exists conversation;
+drop table if exists comment;
+drop table if exists likes;
+drop table if exists images;
+drop table if exists board;
+drop table if exists ingredient;
+drop table if exists post;
+drop table if exists follow;
+drop table if exists user;
+drop table if exists test;
+
+create table user (
+    uid int auto_increment primary key,
+    email_addr varchar(50),
+    name varchar(30),
+    school varchar(30),
+    user_bio varchar(300),
+    -- for logins and passwords
+    -- password is hashed
+    username varchar(50),
+    password char(60),
+    unique(username),
+    index(username)
+);
+
+create table follow (
+    uid_1 int,
+    foreign key (uid_1) references user(uid),
+    uid_2 int,
+    foreign key (uid_2) references user(uid)
+);
+
+create table post (
+    pid int auto_increment primary key,
+    uid int,
+    title varchar(1000), -- recipe title
+    cover_photo blob,
+    serving_size int,
+    prep_time int, 
+    cook_time int,
+    total_time int,
+    post_date datetime,
+    text_descrip varchar(1000),
+    steps varchar(1000),
+    tags set('vegan', 'vegetarian', 'gluten-free', 'dairy-free', 'nut-free', 'quick-meal', 'meal-prep', 'comfort-food', 'breakfast', 
+                'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'fall', 'spring', 'summer', 'winter'),
+    price enum('low', 'medium', 'high'),
+    foreign key (uid) references user(uid)
+);
+
+create table ingredient (
+    pid int,
+    FOREIGN KEY (pid) REFERENCES post(pid) ON DELETE CASCADE,
+    name varchar(50),
+    quantity int,
+    measurement varchar(50)
+);
+
+create table images (
+    image_id int auto_increment primary key,
+    pid int,
+    photo varchar(500),
+    foreign key (pid) references post(pid)
+);
+
+create table likes (
+    uid int,
+    pid int,
+    primary key (uid, pid),
+    foreign key (uid) references user(uid),
+    foreign key (pid) references post(pid)
+);
+
+create table comment (
+    comment_id int auto_increment primary key,
+    uid int,
+    pid int,
+    content varchar(200),
+    foreign key (uid) references user(uid),
+    foreign key (pid) references post(pid)
+);
+
+create table conversation (
+    conver_id int auto_increment primary key,
+    og_comment_id int,
+    reply_id int,
+    foreign key (og_comment_id) references comment(comment_id),
+    foreign key (reply_id) references comment(comment_id)
+);
+
+create table board (
+    uid int,
+    pid int,
+    recipe enum('Made', 'To be made'),
+    foreign key (uid) references user(uid),
+    foreign key (pid) references post(pid)
+);
+====================== templates/base.html =====================
+<!doctype html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <!-- for mobile-friendly pages -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name=author content="">
+    <title>{{ page_title }}</title>
+    <link rel='stylesheet' href="{{url_for('static', filename = 'style.css')}}">
+    {% block head_stuff %} {% endblock %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@1,600&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div id="messages">
+  {% for msg in messages %}
+  <p>{{msg}}</p>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<h1> 🥘 CampusChefs 🥘 </h1>
+            
+{% block nav %}
+<nav>
+  <ul>
+    <li><a href="{{url_for('index')}}">home</a></li>
+    <li><a href="{{url_for('discover')}}">discover</a></li>
+    <li><a href="{{url_for('recipeform')}}">post a recipe</a></li>
+    <li><a href="{{url_for('profile')}}">profile</a></li> 
+  </ul>
+</nav>
+{% endblock %}
+
+{% block main_content %}
+<h1>Welcome!</h1>
+{% endblock %}
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  {% block end_scripts %}
+  {% endblock %}
+  
+</body>
+</html>
+
+====================== templates/discover.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<h1>Discover Recipes</h1>
+
+<div class="search-container">
+    <div class="search-bar">
+        <form method="GET" action="{{ url_for('discover') }}">
+            <input type="text" name="search" id="search" aria-label="Search by recipe title" placeholder="Search by recipe title..."
+                value="{{ request.args.get('search', '') }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="dropdown-container">
+        <div class="dropdown">
+            <label for="season-options" class="dropbtn">📆 season</label>
+            <div id="season-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="fall">Fall</button>
+                    <button type="submit" name="tag" value="spring">Spring</button>
+                    <button type="submit" name="tag" value="summer">Summer</button>
+                    <button type="submit" name="tag" value="winter">Winter</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label for="courses-options" class="dropbtn">🍴 course</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="breakfast">Breakfast</button>
+                    <button type="submit" name="tag" value="brunch">Brunch</button>
+                    <button type="submit" name="tag" value="lunch">Lunch</button>
+                    <button type="submit" name="tag" value="dinner">Dinner</button>
+                    <button type="submit" name="tag" value="dessert">Dessert</button>
+                    <button type="submit" name="tag" value="snack">Snack</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label for="dietary-options" class="dropbtn">🥑 dietary</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="dairy-free">Dairy-Free</button>
+                    <button type="submit" name="tag" value="gluten-free">Gluten-Free</button>
+                    <button type="submit" name="tag" value="nut-free">Nut-Free</button>
+                    <button type="submit" name="tag" value="vegan">Vegan</button>
+                    <button type="submit" name="tag" value="vegetarian">Vegetarian</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label for="convenience-options" class="dropbtn">🕒 convenience</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="quick-meal">Quick-Meal</button>
+                    <button type="submit" name="tag" value="meal-prep">Meal-Prep</button>
+                    <button type="submit" name="tag" value="comfort-food">Comfort-Food</button>
+                </form>
+            </div>
+        </div>
+        
+
+        </form>
+    </div>
+
+    <div class="recipe-list">
+        {% if posts %}
+        {% for post in posts %}
+        <div class="recipe-card">
+            <h3>
+                <a id="discover" href="{{ url_for('recipepost', post_id=post['pid']) }}">
+                    {{ post['title'] }}
+                </a>
+            </h3>
+            <img src="{{ post['cover_photo'] }}" alt="{{ post['title'] }} cover photo" class="recipe-img" />
+            
+            <button class="like-btn" 
+                data-pid="{{ post['pid'] }}"
+                data-liked="{{ post['liked'] }}"
+                onclick="toggleLike({{ post['pid'] }}, '{{ post['liked'] }}')">
+            {% if post['liked'] %}
+            ❤️ Liked ({{ post['like_count'] }})
+            {% else %}
+            ♡ Like ({{ post['like_count'] }})
+            {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No posts available.</p>
+        {% endif %}
+    </div>
+
+
+
+
+    <!-- Pagination (optional, if there are many posts) -->
+    {% if posts.has_next %}
+    <div class="pagination">
+        <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
+        <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
+    </div>
+    {% endif %}
+
+    {% endblock %}
+====================== templates/form_data.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<h1>Form Data</h1>
+
+<p>The form was submitted by {{method}}.</p>
+
+<ul>
+    {% for key in form_data.keys() %}
+    <li><b class="key">{{key}}</b>
+        <ul>
+            {# getlist is a special method on Flask multi-dicts #}
+            {# it gets the list of all values for that key #}
+            {% for val in form_data.getlist(key) %}
+            <li>{{val}}</li>
+            {% endfor %}
+        </ul></li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
+
+====================== templates/greet.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<h1>Greetings {{name}}</h1>
+
+<form method="post" action="">
+    <p>Please tell us your <label for="username">
+            name: <input type="text" name="username">
+    </label></p>
+    <p><input type="submit"></p>
+</form>
+
+{% endblock %}
+
+====================== templates/login.html =====================
+{% extends "base.html" %}
+<!-- override the navigation because we don't want users to access it -->
+{% block nav %}
+{% endblock %}
+
+{% block main_content %}
+    <form id="login" method="POST" action="{{ url_for('login') }}">
+        <h2>Log In</h2>
+        
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+        <label for="password">Password</label>
+        <input type="text" id="password" name="password" placeholder="Enter your password" required>
+
+        <p><input type="submit" value="Log In"></p>
+
+        <h2>Don't have an account?</h2>
+        <a id="register" href="{{ url_for('register') }}">Sign Up</a>
+    </form>
+{% endblock %}
+
+
+
+====================== templates/main.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<div class="splitscreen">
+    <div class="left">
+        <img src="https://media2.giphy.com/media/ggiQj578N67zmd1Tbt/giphy.gif?cid=6c09b9523xtnojq2bm07x4ns7cvjry70ocu405gcmcftngow&ep=v1_internal_gif_by_id&rid=giphy.gif&ct=s" 
+        alt="Home Photo"
+        style="margin-left: 250px;">
+    </div>
+  
+<div class="right" >
+    <h1 style="margin-left: -100px;">Hello!</h1>
+
+    <p>Welcome to CampusChefs, the website for college students to share their favorite recipes and receive inspiration!</p>
+
+    </div>
+</div>
+
+{% endblock %}
+
+====================== templates/profile.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+<style> 
+.profile-pic {
+    width: 80px;
+    height: 80px;
+    background-color: #96478b;
+    border-radius: 50%; /* Makes the element circular */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    margin-left: auto;
+    border: 3px solid #6b8af0; /* Add circular border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for a better look */
+}
+.user-recipes {
+        margin-top: 30px;
+    }
+
+    .recipes-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px; /* Space between recipe cards */
+        justify-content: flex-start;
+    }
+
+    .recipe-card {
+        width: 300px;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        text-align: left;
+        padding: 10px;
+    }
+
+    .recipe-img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+</style>
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-pic">
+            <div class="profile-initial">{{ user.name[0] }}</div>
+        </div>
+        <div class="profile-info">
+            <h2>{{ user.name }}</h2>
+            <p>Username: {{ user.username }}</p>
+        </div>
+    </div>
+
+    <form id="login" method="POST" action="{{ url_for('profile') }}">
+    <p><input type="submit" value="Log Out"></p>
+    </form>
+
+    <div class="user-recipes">
+        <h3>Your Recipes</h3>
+        {% if recipes %}
+        <div class="recipes-grid">
+            {% for recipe in recipes %}
+            <div class="recipe-card">
+                <img src="{{ recipe.cover_photo }}" alt="{{ recipe.title }}" class="recipe-img">
+                <div class="recipe-details">
+                    <h4>{{ recipe.title }}</h4>
+                    <a href="{{ url_for('recipepost', post_id=recipe.pid) }}" class="view-recipe-btn">View Recipe</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>You haven't posted any recipes yet. Start sharing your creations!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+====================== templates/recipeform.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<body>
+
+<h2> Please fill in all forms to post your new recipe to CampusChefs. </h2>
+<p> Post your recipe for other college students to try out and enjoy! </p>
+
+<section>
+
+<form id="recipe-form" method="post" enctype="multipart/form-data" action="{{url_for('recipeform')}}">
+
+<label for="title"> Recipe title</label>
+<input type="text" id="title" name="title" placeholder="Enter a short recipe title" required>
+
+<p><b>Upload a cover photo (min 720 x 400px): </b></p>
+    <label>Picture: <input type="file" name="cover-photo" required></label>
+
+<label for="size"> Serving size</label>
+<select id = 'size' name = 'size' required>
+    <option value = ""> select </option>
+    <option value = "1"> 1 </option> 
+    <option value = "2"> 2 </option> 
+    <option value = "3"> 3 </option> 
+    <option value = "4"> 4 </option> 
+    <option value = "5"> 5 </option> 
+    <option value = "6"> 6 </option> 
+    <option value = "7"> 7 </option> 
+    <option value = "8"> 8 </option> 
+    <option value = "9+"> 9+ </option> 
+</select>
+
+<label for="prep-time">Prep Time (minutes):</label>
+<input type="number" id="prep-time" name="prep-time" placeholder="Enter prep time" required>
+
+<label for="cook-time">Cook Time (minutes):</label>
+<input type="number" id="cook-time" name="cook-time" placeholder="Enter cook time" required>
+
+<!-- TO DO: Dynamically add rows using JS -->
+<p> <b>Ingredients and Measurements </b></p>
+    <table>
+        <tr>
+            <td>
+                <label for="quantity1">Quantity:</label>
+                <input type="number" id="quantity1" name="ingredients[0][quantity]" placeholder="Enter quantity" required>
+            </td>
+            <td>
+                <label for="measurement1">Measurement:</label>
+                <input type="text" id="measurement1" name="ingredients[0][measurement]" placeholder="Enter measurement">
+            </td>
+            <td>
+                <label for="ingredient1">Ingredient:</label>
+                <input type="text" id="ingredient1" name="ingredients[0][name]" placeholder="Enter ingredient" required>
+            </td>
+        </tr>
+        <!-- Row 2 -->
+        <tr>
+            <td>
+                <label for="quantity2">Quantity:</label>
+                <input type="number" id="quantity2" name="ingredients[1][quantity]" placeholder="Enter quantity" required>
+            </td>
+            <td>
+                <label for="measurement2">Measurement:</label>
+                <input type="text" id="measurement2" name="ingredients[1][measurement]" placeholder="Enter measurement">
+            </td>
+            <td>
+                <label for="ingredient2">Ingredient:</label>
+                <input type="text" id="ingredient2" name="ingredients[1][name]" placeholder="Enter ingredient" required>
+            </td>
+        </tr>
+        <!-- Row 3 -->
+        <tr>
+            <td>
+                <label for="quantity3">Quantity:</label>
+                <input type="number" id="quantity3" name="ingredients[2][quantity]" placeholder="Enter quantity">
+            </td>
+            <td>
+                <label for="measurement3">Measurement:</label>
+                <input type="text" id="measurement3" name="ingredients[2][measurement]" placeholder="Enter measurement">
+            </td>
+            <td>
+                <label for="ingredient3">Ingredient:</label>
+                <input type="text" id="ingredient3" name="ingredients[2][name]" placeholder="Enter ingredient">
+            </td>
+        </tr>
+        <!-- Row 4 -->
+        <tr>
+            <td>
+                <label for="quantity4">Quantity:</label>
+                <input type="number" id="quantity4" name="ingredients[3][quantity]" placeholder="Enter quantity">
+            </td>
+            <td>
+                <label for="measurement4">Measurement:</label>
+                <input type="text" id="measurement4" name="ingredients[3][measurement]" placeholder="Enter measurement">
+            </td>
+            <td>
+                <label for="ingredient4">Ingredient:</label>
+                <input type="text" id="ingredient4" name="ingredients[3][name]" placeholder="Enter ingredient">
+            </td>
+        </tr>
+    </table>
+
+<!-- Adding dynamically added rows for the ingredients using jss (ingredients.js) -->
+<!-- will be implemented in alpha version -->
+<!-- <button type="btn">Add Row</button>
+<script src="{{url_for('static', filename='ingredients.js')}}"></script> -->
+
+<script>
+    document.getElementById('btn')
+        .addEventListener( 'click', (e) => addrow(e));
+</script>
+
+
+<label for="steps"> Recipe steps</label>
+<p><i>Please number your steps and separate each step with a new line. </i></p>
+<textarea id="steps" name="steps" placeholder="Enter the steps to create your recipe here!" required></textarea>
+
+<div class="radio-group">
+    <p><b> Select the price of the recipe:</b></p>
+    <label>
+        <input type="radio" name="price" value="low"> $
+    </label>
+    <label>
+        <input type="radio" name="price" value="medium"> $$
+    </label>
+    <label>
+        <input type="radio" name="price" value="high"> $$$
+    </label>
+</div>
+
+<div class="tags-group">
+    <p id="tagsLabel"><b> Choose tags that apply to your recipe: </b> </p>
+    <p id="tagsHelp"><i>Press COMMAND on Mac or CTRL on PC to select multiple tags.</i></p>
+    <select id="tags" name="tags" multiple aria-labelledby="tagsLabel" aria-describedby="tagsHelp">
+        <option value="vegan">Vegan</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="gluten-free">Gluten-Free</option>
+        <option value="dairy-free">Dairy-Free</option>
+        <option value="nut-free">Nut-Free</option>
+        <option value="quick">Quick Meal</option>
+        <option value="meal-prep">Meal Prep</option>
+        <option value="comfort-food">Comfort Food</option>
+        <option value="breakfast">Breakfast</option>
+        <option value="brunch">Brunch</option>
+        <option value="lunch">Lunch</option>
+        <option value="dinner">Dinner</option>
+        <option value="dessert">Dessert</option>
+        <option value="snack">Snack</option>
+        <option value="fall">Fall</option>
+        <option value="spring">Spring</option>
+        <option value="summer">Summer</option>
+        <option value="winter">Winter</option>
+
+    </select>
+</div>
+
+<label for="description"> Description or notes </label>
+<textarea id="description" name="description" placeholder="Enter an optional description or notes and suggestions for other users"></textarea>
+
+<p><input type="submit" value="Submit recipe!"> </p>
+
+</form>
+</section>
+
+{% endblock %}
+
+</body>
+</html>
+
+====================== templates/recipepost.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<body>
+   
+    <div class="splitscreen">
+        <div class="left">
+             <!-- Cover Photo -->
+            {% if photo_url %}
+            <img src="{{ photo_url }}" alt="Cover Photo" class="standard-image">
+            {% endif %}
+        </div>
+      
+    <div class="right">
+        <h1> {{title}} </h1>
+        <p style="font-size: 120%;"><b> By </b>{{username}}</p>
+        <p style="font-size: 120%;"><b> Published on </b>{{date}}</p>
+        </div>
+    </div>
+    
+<div class="splitscreen">
+    <div class="left content-box">
+        <p><b>Total time:</b> {{ total_time }} minutes</p>
+        <p><b>Prep time:</b> {{ prep_time }} minutes</p>
+        <p><b>Cook time:</b> {{ cook_time }} minutes</p>
+        
+        <p><b>Price:</b> {{ price }}</p>
+        <p><b>Description / notes:</b> {{ description }}</p>
+    
+        <p><b>Ingredients:</b></p>
+        <p><i>Serves: {{ size }} people</i></p>
+        <ul>
+            {% for ingredient in ingredients %}
+                <li>
+                    {% if ingredient.quantity %}
+                        {{ ingredient.quantity }}
+                    {% endif %}
+                    {% if ingredient.measurement %}
+                        {{ ingredient.measurement }}
+                    {% endif %}
+                    {{ ingredient.name }}
+                </li>
+            {% endfor %}
+        </ul>
+    
+        <p><b>Tags:</b> {{tags}}</p>
+    </div>
+   
+    
+<div class="right">
+    <p><b>Steps:</b></p>
+    {% for step in steps %}
+        <p>{{ step }}</p>
+    {% endfor %}
+    
+    <!-- Form to update or delete -->
+    <form method="POST">
+        <input type="submit" name="submit" value="update">
+        <input type="submit" name="submit" value="delete">
+    </form>
+</div>
+    
+
+
+</div>
+
+   
+
+{% endblock %}
+====================== templates/register.html =====================
+{% extends "base.html" %}
+<!-- override the navigation because we don't want users to access it -->
+{% block nav %}
+{% endblock %}
+
+{% block main_content %}
+    <form id="register" method="POST" action="{{ url_for('register') }}">
+        <h2>Sign Up</h2>
+        
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your first and last name" required>
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+        <label for="password1">Password</label>
+        <input type="text" id="password1" name="password1" placeholder="Enter your password" required>
+
+        <label for="password2">Confirm Password</label>
+        <input type="text" id="password2" name="password2" placeholder="Re-enter your password" required>
+
+        <p><input type="submit" value="Register"></p>
+    </form>
+{% endblock %}
+====================== templates/select.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<h1>Discover Recipes</h1>
+
+<style>
+    /* General container styling */
+    .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Space between search bar and dropdown container */
+    }
+    
+    /* Dropdown container */
+    .dropdown-container {
+        display: flex;
+        gap: 15px; /* Space between dropdown items */
+        flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        position: relative; /* Ensure dropdown content is positioned correctly */
+        margin-bottom: 30px; /* Space below the dropdowns and above the recipe list */
+    }
+    
+    /* Dropdown styling */
+    .dropdown {
+        position: relative; /* Position relative to parent for dropdown content */
+    }
+    
+    .dropbtn {
+        font-size: 32px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+    }
+    
+    /* Dropdown content styling */
+    .dropdown-content {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 40px; /* Position below the button */
+        left: 0;
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10; /* Ensure it appears above other elements */
+    }
+    
+    .dropdown:hover .dropdown-content {
+        display: block; /* Show dropdown on hover */
+    }
+    
+    /* Links inside the dropdown */
+    .dropdown-content button {
+        background: none;
+        border: none;
+        padding: 10px;
+        font-size: 14px;
+        text-align: left;
+        color: #333;
+        cursor: pointer;
+        width: 100%;
+    }
+    
+    .dropdown-content button:hover {
+        background-color: #f0f0f0;
+    }
+    
+    /* Recipe list */
+    .recipe-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px; /* Space between recipe cards */
+        justify-content: flex-start;
+    }
+    
+    /* Recipe card styling */
+    .recipe-card {
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 8px;
+        width: 200px;
+        text-align: center;
+    }
+    
+    /* Recipe images */
+    .recipe-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="search-container">
+    <div class="search-bar">
+        <form method="GET" action="{{ url_for('discover') }}">
+            <input type="text" name="search" placeholder="Search by recipe title, tag, or price..."
+                value="{{ request.args.get('search', '') }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="dropdown-container">
+        <div class="dropdown">
+            <label for="season-options" class="dropbtn">📆</label>
+            <div id="season-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="fall">Fall</button>
+                    <button type="submit" name="tag" value="spring">Spring</button>
+                    <button type="submit" name="tag" value="summer">Summer</button>
+                    <button type="submit" name="tag" value="winter">Winter</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label for="courses-options" class="dropbtn">🍴</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="breakfast">Breakfast</button>
+                    <button type="submit" name="tag" value="brunch">Brunch</button>
+                    <button type="submit" name="tag" value="lunch">Lunch</button>
+                    <button type="submit" name="tag" value="dinner">Dinner</button>
+                    <button type="submit" name="tag" value="dessert">Dessert</button>
+                    <button type="submit" name="tag" value="snack">Snack</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label for="dietary-options" class="dropbtn">🥑</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="dairy-free">Dairy-Free</button>
+                    <button type="submit" name="tag" value="gluten-free">Gluten-Free</button>
+                    <button type="submit" name="tag" value="nut-free">Nut-Free</button>
+                    <button type="submit" name="tag" value="vegan">Vegan</button>
+                    <button type="submit" name="tag" value="vegetarian">Vegetarian</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label for="convenience-options" class="dropbtn">🕒</label>
+            <div id="course-options" class="dropdown-content">
+                <form method="POST" action="{{ url_for('discover') }}">
+                    <button type="submit" name="tag" value="quick-meal">Quick-Meal</button>
+                    <button type="submit" name="tag" value="meal-prep">Meal-Prep</button>
+                    <button type="submit" name="tag" value="comfort-food">Comfort-Food</button>
+                </form>
+            </div>
+        </div>
+        
+
+        </form>
+    </div>
+
+
+    <div class="recipe-list">
+        {% if posts %}
+        {% for post in posts %}
+        <div class="recipe-card">
+            <h3>
+                <a href="{{ url_for('recipepost', post_id=post['pid']) }}" style="text-decoration: underline; color: palevioletred;">
+                    {{ post['title'] }}
+                </a>
+            </h3>
+            <img src="{{ post['cover_photo'] }}" alt="{{ post['title'] }} cover photo" class="recipe-img" />
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No posts available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if posts.has_next %}
+    <div class="pagination">
+        <a href="{{ url_for('discover', page=posts.prev_num) }}">Previous</a>
+        <a href="{{ url_for('discover', page=posts.next_num) }}">Next</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+====================== templates/testform.html =====================
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<h1>Test Forms</h1>
+
+<!-- two forms, both sending data to the same back-end route -->
+
+<h2>POST form</h2>
+
+<!-- a form that uses POST -->
+
+<form method="post" action="{{url_for('formecho')}}">
+<p><label>Name:
+    <input required type="text" name="user" size="50" placeholder="Arthur, King of the Britons"></label></p>
+
+<p><label>Quest:
+    <textarea required name="quest" rows="3" cols="50" placeholder="To seek the grail"></textarea>
+</label></p>
+
+<p><label>Favorite Color?
+        <select required name="color">
+            <option value="">choose</option>
+            <option>Blue</option>
+            <option value="yellow">No, yel...</option>
+        </select>
+</label></p>
+
+<p><input type="submit" value="process form">
+</form>
+
+<!-- a nearly identical form that uses GET -->
+
+<h2>GET form</h2>
+
+<form method="get" action="{{url_for('formecho')}}">
+<p><label>Name:
+    <input required type="text" name="user" size="50" placeholder="Arthur, King of the Britons"></label></p>
+
+<p><label>Quest:
+    <textarea required name="quest" rows="3" cols="50" placeholder="To seek the grail"></textarea>
+</label></p>
+
+<p><label>Favorite Color?
+        <select required name="color">
+            <option value="">choose</option>
+            <option>Blue</option>
+            <option value="yellow">No, yel...</option>
+        </select>
+</label></p>
+
+<p><input type="submit" value="process form">
+</form>
+
+{% endblock %}
+
+====================== templates/updatepost.html =====================
+<!doctype html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <meta name=author content="Hannah Chiou">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Update Recipe Form</title>
+</head>
+
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<body>
+
+<h2> Update your CampusChefs recipe here. </h2>
+<p> Post your recipe for other college students to try out and enjoy! </p>
+
+<section>
+
+<form id="update-recipe" method="post" enctype="multipart/form-data" action="{{ url_for('updatepost', post_id=post_id) }}">
+
+<!-- Recipe Title -->
+<label for="title"> Recipe title</label>
+<input type="text" id="title" name="title" value="{{ title }}" required>
+
+<!-- Cover Photo -->
+<p><b>Upload a cover photo (min 720x400 px): </b></p>
+<label>Picture: <input type="file" name="cover-photo" value="{{ cover_photo }}" required></label>
+
+<!-- Serving Size -->
+<label for="size"> Serving size</label>
+<select id="size" name="size" required>
+    <option value="">Select</option>
+    {% for i in range(1, 10) %}
+    <option value="{{ i }}" {% if size == i %}selected{% endif %}>{{ i }}</option>
+    {% endfor %}
+    <option value="9+" {% if size == "9+" %}selected{% endif %}>9+</option>
+</select>
+
+<!-- Prep Time -->
+<label for="prep-time">Prep Time (minutes):</label>
+<input type="number" id="prep-time" name="prep-time" value="{{ prep_time }}" placeholder="Enter prep time" required>
+
+<!-- Cook Time -->
+<label for="cook-time">Cook Time (minutes):</label>
+<input type="number" id="cook-time" name="cook-time" value="{{ cook_time }}" placeholder="Enter cook time" required>
+
+<p><b>Ingredients and Measurements</b></p>
+<table>
+    {% for ingredient in ingredients %}
+    <tr>
+        <td>
+            <label for="quantity{{ loop.index0 }}">Quantity:</label>
+            <input type="number" id="quantity{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][quantity]" value="{{ ingredient['quantity'] }}" required>
+        </td>
+        <td>
+            <label for="measurement{{ loop.index0 }}">Measurement:</label>
+            <input type="text" id="measurement{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][measurement]" value="{{ ingredient['measurement'] }}">
+        </td>
+        <td>
+            <label for="ingredient{{ loop.index0 }}">Ingredient:</label>
+            <input type="text" id="ingredient{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][name]" value="{{ ingredient['name'] }}" required>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- Steps -->
+<label for="steps">Recipe steps</label>
+<p><i>Please number your steps and separate each step with a new line. </i></p>
+<textarea id="steps" name="steps" required>{{ steps }}</textarea>
+
+<!-- Price -->
+<div class="radio-group">
+    <p><b>Select the price of the recipe:</b></p>
+    <label>
+        <input type="radio" name="price" value="low" {% if price == 'low' %}checked{% endif %}> $
+    </label>
+    <label>
+        <input type="radio" name="price" value="medium" {% if price == 'medium' %}checked{% endif %}> $$
+    </label>
+    <label>
+        <input type="radio" name="price" value="high" {% if price == 'high' %}checked{% endif %}> $$$
+    </label>
+</div>
+
+<div class="tags-group">
+    <p id="tagsLabel"><b> Choose tags that apply to your recipe: </b> </p>
+    <p id="tagsHelp"><i>Press COMMAND on Mac or CTRL on PC to select multiple tags.</i></p>
+    <select id="tags" name="tags" multiple aria-labelledby="tagsLabel" aria-describedby="tagsHelp">
+        <option value="vegan">Vegan</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="gluten-free">Gluten-Free</option>
+        <option value="dairy-free">Dairy-Free</option>
+        <option value="nut-free">Nut-Free</option>
+        <option value="quick">Quick Meal</option>
+        <option value="meal-prep">Meal Prep</option>
+        <option value="comfort-food">Comfort Food</option>
+        <option value="breakfast">Breakfast</option>
+        <option value="brunch">Brunch</option>
+        <option value="lunch">Lunch</option>
+        <option value="dinner">Dinner</option>
+        <option value="dessert">Dessert</option>
+        <option value="snack">Snack</option>
+        <option value="fall">Fall</option>
+        <option value="spring">Spring</option>
+        <option value="summer">Summer</option>
+        <option value="winter">Winter</option>
+    </select>
+</div>
+
+
+<!-- Description -->
+<label for="description">Description or notes</label>
+<textarea id="description" name="description">{{ description }}</textarea>
+
+<p><input type="submit" value="Update my recipe"> </p>
+
+</form>
+</section>
+
+{% endblock %}
+
+</body>
+</html>
+
+====================== static/ingredients.js =====================
+
+====================== static/likes.js =====================
+function toggleLike(pid) {
+    var button = event.target;  // Get the clicked button
+    var currentStatus = button.getAttribute("data-liked"); // Get the current like status
+    var liked = (currentStatus === 'true');  // Determine current like status
+    liked = !liked;  // Toggle the status
+
+    // Update the button text based on the new like status
+    var likeCount = parseInt(button.textContent.match(/\d+/)[0]);  // Extract current like count
+    likeCount = liked ? likeCount + 1 : likeCount - 1;  // Increment or decrement the like count
+
+    // Update the like button text
+    button.textContent = liked ? `❤️ Liked (${likeCount})` : `♡ Like (${likeCount})`;
+    button.setAttribute("data-liked", liked.toString());  // Update the data-liked attribute
+
+    // Send the like/unlike request to the server
+    fetch(`/like_post/${pid}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'  // Include CSRF token if needed
+        },
+        body: JSON.stringify({ liked: liked })
+    }).then(response => {
+        if (response.ok) {
+            console.log('Like status updated');
+        } else {
+            console.log('Failed to update like status');
+        }
+    });
+}
+====================== static/style.css =====================
+/* the --color-header and others are CSS variables, which we access later. 
+*/
+
+
+/* For flashed messages; make them stand out using red and italics */
+
+#messages {
+    color: #B22222;
+    font-style: italic;
+}
+
+body {
+    background-color: #F9F6ef;
+    color: #282828;
+    font-family: 'Work Sans', sans-serif;
+    font-size: large;
+    line-height: 150%;
+}
+h1{
+    font-size: 55px;
+    font-weight: bold;
+    color: #193497;
+    margin: 1em auto; /* Centers the heading block itself */
+    text-align: center;
+    line-height: 1.2;
+}
+
+h2{
+    color: #0077b6;
+    font-style: italic;
+    font-size: larger;
+    margin-right: 150px;
+    margin-left: 80px;
+}
+p{
+    font-style: normal;
+    margin-right: 250px;
+    margin-left: 80px;
+}
+
+#register {
+    margin-right: 250px;
+    margin-left: 80px;
+}
+footer {
+    background-color: #193497; 
+    color: #F9F6ef; 
+    padding: 20px 0;
+    text-align: center; 
+}
+#iconlist {
+    list-style-type: none; 
+    padding: 0; 
+    margin: 0; 
+    display: flex; 
+    justify-content: center; 
+    gap: 20px; 
+}
+#iconlist li {
+    display: inline; 
+}
+#iconlist img {
+    vertical-align: middle;     
+}
+.footer-content p {
+    margin: 5px 0; 
+    font-size: 14px; 
+    color: #F9F6ef;
+}
+table {
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-left: 70px;
+}
+td {
+    padding: 10px; 
+    vertical-align: top;
+}
+label {
+    display: block; 
+    margin-bottom: 5px; 
+    font-weight: bold; 
+    margin-left: 80px;
+}
+select, input[type="text"], input[type="number"] {
+    width: 50%; 
+    padding: 8px; 
+    border: 1px solid #ccc;
+    border-radius: 4px; 
+    font-size: 16px;
+    margin-left: 80px;
+}
+textarea{
+    width: 50%; 
+    height: 200px;
+    padding: 8px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px; 
+    margin-left: 80px; 
+    resize: vertical;
+}
+.radio-group label {
+    margin-left: 80px;
+    margin-right: 20px; 
+    display: inline-block;
+    vertical-align: middle; 
+}
+.radio-group input[type="radio"] {
+margin-right: 5px; 
+}
+.tags-group select {
+    margin-top: 5px;
+    width: 50%; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+    
+nav {
+    display: flex;
+    justify-content: center; /* Centers the navbar horizontally */
+    align-items: center; /* Centers items vertically (if needed) */
+    background-color: var(--color-header); /* Optional: Add a background color */
+    padding: 10px 0; /* Optional: Add padding for better spacing */
+}
+
+nav > ul {
+    display: flex;
+    justify-content: center; /* Ensures the list itself is centered */
+    flex-direction: row; /* Keeps the navigation links in a row */
+    gap: 20px; /* Adds space between items */
+    list-style-type: none;
+    margin: 0; /* Resets any default margin */
+    padding: 0; /* Resets any default padding */
+}
+
+nav > ul > li {
+    flex: 0 0 auto; /* Ensures items stay their original size */
+}
+
+nav button, nav a {
+    display: block;
+    box-sizing: border-box; /* Makes width calculations easier */
+    width: 100%; /* Ensures the button or link fills its container */
+    height: 40px;
+    padding: 0px 50px;
+    background-color: var(--color-header);
+    border: 2px solid lightgray;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-family: var(--font-family);
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
+
+nav button:hover, button:focus, nav a:hover, nav a:focus {
+    background-color: #0077b6;
+}
+
+.standard-image {
+    width: 710px;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto; /* Center the image */
+    margin-top: 20px;
+    border-radius: 10px; /* Optional: rounded corners */
+}
+
+ul {
+    list-style-position: inside; 
+    margin-left: 80px; /* Matches the margin of other text elements */
+    margin-right: 250px; /* Keeps consistency with other text elements */
+    padding-left: 20px; 
+}
+
+li {
+    margin-bottom: 8px; 
+    font-size: large; 
+    line-height: 1.5; 
+}
+
+.splitscreen {
+    display: flex;
+    gap: 10px;
+  }
+  
+.splitscreen .left,
+.splitscreen .right {
+    flex: 1;
+    margin: 20px 10px; 
+  }
+
+.content-box {
+    border: 2px solid #193497; 
+    border-radius: 10px; 
+    padding: 5px; 
+    margin: 10px 5px; 
+}
+
+
+/* General container styling */
+.search-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Space between search bar and dropdown container */
+}
+
+/* Dropdown container */
+.dropdown-container {
+    display: flex;
+    gap: 15px;
+    /* Space between dropdown items */
+    flex-wrap: wrap;
+    /* Allow wrapping for smaller screens */
+    position: relative;
+    /* Ensure dropdown content is positioned correctly */
+    margin-bottom: 30px;
+    /* Space below the dropdowns and above the recipe list */
+}
+
+/* Dropdown styling */
+.dropdown {
+    position: relative;
+    /* Position relative to parent for dropdown content */
+}
+
+.dropbtn {
+    font-size: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+/* CSS for the Discover Page below #/
+
+/* Dropdown content styling */
+.dropdown-content {
+    display: none;
+    /* Hidden by default */
+    position: absolute;
+    top: 40px;
+    /* Position below the button */
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    /* Ensure it appears above other elements */
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    /* Show dropdown on hover */
+}
+
+/* Links inside the dropdown */
+.dropdown-content button {
+    background: none;
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    text-align: left;
+    color: #333;
+    cursor: pointer;
+    width: 100%;
+}
+
+.dropdown-content button:hover {
+    background-color: #f0f0f0;
+}
+
+/* Recipe list */
+.recipe-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* Space between recipe cards */
+    justify-content: flex-start;
+}
+
+/* Recipe card styling */
+.recipe-card {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    width: 200px;
+    text-align: center;
+}
+
+/* Recipe images */
+.recipe-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+#discover {
+    text-decoration: underline; 
+    color: #D24C67;
+}
+

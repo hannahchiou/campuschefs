@@ -5,11 +5,12 @@ import pymysql #for integrityError error checking
 
 # insert new user info and password into the database
 # when they first register just set username and password 
-def insertUser(conn, username, passwd, name):
+def insertUser(conn, username, passwd, name, email, school):
     try: 
         curs = dbi.cursor(conn)
-        curs.execute('''INSERT INTO user(username, password, name) VALUES(%s,%s,%s)''',
-                     [username, passwd, name])
+        curs.execute('''INSERT INTO user(username, password, name, email_addr, school) 
+                     VALUES(%s,%s,%s,%s,%s)''',
+                     [username, passwd, name, email, school])
         conn.commit()
         return {"success": True, "message": "User inserted successfully."}
     except pymysql.IntegrityError:
@@ -29,8 +30,9 @@ def getRecipesByUser(conn, uid):
 # get a uid, name and password password given username
 def getUserInfo(conn, username):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''SELECT uid, name, password FROM user WHERE username = %s''',[username])
+    curs.execute('''SELECT uid, name, password, school FROM user WHERE username = %s''',[username])
     return curs.fetchone()
+
 #get username by using the id 
 def getUser_byID(conn, uid):
     curs = dbi.dict_cursor(conn)
