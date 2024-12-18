@@ -102,7 +102,7 @@ def login():
         session['username'] = username
         session['uid'] = result['uid']
         session['logged_in'] = True
-        print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+        # print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
         # session['visits'] = 1
         return redirect(url_for('index'))
     else: 
@@ -111,7 +111,6 @@ def login():
     
 @app.route('/logout/')
 def logout():
-    print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
     if 'username' in session:
         username = session['username']
         session.pop('username')
@@ -183,7 +182,7 @@ def recipeform():
                             tags = tags,
                             price = price)
             
-         # Collect ingredients
+         # Collect ingredients 
         index = 0
         while True:
             # Dynamically access each row of ingredients
@@ -219,7 +218,6 @@ def recipepost(post_id):
         post_owner_id = post['uid']
         current_user = session.get('uid')
         ingredients = helper.getIngredients(conn, post_id)
-        print(ingredients)
 
         if not post: 
             flash('''The recipe you requested is not in the database.
@@ -274,14 +272,13 @@ def updatepost(post_id):
         current_user = session.get('uid')
         if recipe['uid'] == current_user: 
             ingredients = helper.getIngredients(conn,post_id)
-            print('this post id is' + post_id)
             id = post_id 
-            print(id)
         
             return render_template('updatepost.html',
                                post_title = "Update Post",
                                post_id = id,
                                title=recipe['title'],
+                               size = recipe['serving_size'],
                                cover_photo=recipe['cover_photo'],
                                prep_time=recipe['prep_time'],
                                cook_time=recipe['cook_time'],
@@ -322,6 +319,7 @@ def updatepost(post_id):
         
         # updates ingredients by deleting all ingredients and inserting 
         # the ingredients entered in the update form
+        
         helper.deleteIngredients(conn,post_id)
         index = 0
         while True:
@@ -329,6 +327,7 @@ def updatepost(post_id):
             quantity = request.form.get(f'ingredients[{index}][quantity]')
             measurement = request.form.get(f'ingredients[{index}][measurement]')
             name = request.form.get(f'ingredients[{index}][name]')
+
             if not name:  # Stop when no more ingredient names are provided
                 break
             helper.insertIngredients(conn, 
