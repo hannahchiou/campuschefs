@@ -358,7 +358,10 @@ def discover():
     # Fetch all posts
     curs.execute('SELECT pid, title, cover_photo, like_count FROM post')
     posts = curs.fetchall()
-
+    posts = [
+        {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+        for row in retrieve_posts
+    ]
     # Pass the user's uid to the template
     user_id = session['uid']
     return render_template('discover.html', posts=posts, user_id=user_id)
@@ -397,13 +400,18 @@ def profile():
             'school': user_dict['school']
         }
         user_recipes = helper.getRecipesByUser(conn, user_dict['uid'])
+        liked_recipes = helper.getlikedRecipesByUser(conn, user_dict['uid'])
         #user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
         #The usage of v.decode decodes the image bytes.
         recipes = [
             {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
             for row in user_recipes
             ]
-        return render_template('profile.html',page_title="Profile Page", user=user, recipes=recipes)
+        liked_recipe = [
+            {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
+            for row in liked_recipes
+            ]
+        return render_template('profile.html',page_title="Profile Page", user=user, recipes=recipes, liked_recipes = liked_recipe)
     if request.method == 'POST':
         return redirect(url_for('logout'))
 

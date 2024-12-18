@@ -27,6 +27,13 @@ def getRecipesByUser(conn, uid):
                     FROM post 
                     WHERE uid = %s''', [uid])
     return curs.fetchall()
+#given a uid- get all the post made by that user/uid   
+def getlikedRecipesByUser(conn, uid):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''SELECT p.pid, p.title, p.cover_photo, p.text_descrip 
+                    FROM post as p inner join likes as l on p.pid = l.pid
+                    WHERE l.uid = %s''', [uid])
+    return curs.fetchall()
 
 # get a uid, name and password password given username
 def getUserInfo(conn, username):
