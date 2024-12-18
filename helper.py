@@ -1,6 +1,7 @@
 # helper functions
 import cs304dbi as dbi
 import pymysql #for integrityError error checking
+from flask import request
 
 
 # insert new user info and password into the database
@@ -222,6 +223,26 @@ def toggle_like(conn, uid, pid):
     
     conn.commit()  # Commit the transaction
     return action, like_count
+
+def insert(conn,post_id):
+    '''
+    Helper function to reduce repetition. Gets each row of ingredients from form and inserts it
+    into the ingredients table
+    '''
+    index = 0
+    while True:
+        # Dynamically access each row of ingredients
+        quantity = request.form.get(f'ingredients[{index}][quantity]')
+        measurement = request.form.get(f'ingredients[{index}][measurement]')
+        name = request.form.get(f'ingredients[{index}][name]')
+        if not name:  # Stop when no more ingredient names are provided
+            break
+        insertIngredients(conn, 
+                            pid = post_id,
+                            name = name,
+                            quantity = quantity,
+                            measurement = measurement)
+        index += 1
 
 if __name__ == '__main__':
     dbi.conf('campuschefs_db')
