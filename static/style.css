@@ -307,3 +307,28 @@ li {
     text-decoration: underline; 
     color: #D24C67;
 }
+
+
+/* Apply similar styles to password fields as normal text boxes */
+input[type="password"] {
+    width: 50%; 
+    padding: 8px; 
+    border: 1px solid #ccc;
+    border-radius: 4px; 
+    font-size: 16px;
+    margin-left: 80px;
+    background-color: white; 
+}
+
+input[type="password"]:focus {
+    border-color: #0077b6; 
+}
+
+/* Style the toggle icon to align with the password field */
+form i {
+    margin-left: -30px;
+    cursor: pointer;
+    position: relative;
+    top: -2px; /* Adjust the position of the eye icon to align better */
+    left: -15px; 
+}

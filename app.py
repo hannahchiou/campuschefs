@@ -26,8 +26,7 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 @app.route('/')
 def index():
     ''''
-    Our homepage. This page will eventually get the cookie information from 
-    our users 
+    Our homepage. Gets username information from our session
     '''
     username = session.get('username')
     if not username:
@@ -50,9 +49,12 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# route creating an account
+
 @app.route('/register/', methods = ['GET','POST'])
 def register():
+    '''
+    Registers a new account.
+    '''
     if request.method == "GET":
         return render_template('register.html',  page_title = 'registration page')  # Show the register  page
     conn = dbi.connect()
@@ -63,6 +65,8 @@ def register():
     if password1 != password2:
         flash('Please enter matching passwords.')
         return redirect( url_for('register'))
+    email = request.form.get('email')
+    school = request.form.get('school')
     
     # Hash the password
     hashed = bcrypt.hashpw(password1.encode('utf-8'),
@@ -70,7 +74,7 @@ def register():
     stored = hashed.decode('utf-8')
 
     # Call the helper function to insert the new user
-    result = helper.insertUser(conn, username, stored, name)
+    result = helper.insertUser(conn, username, stored, name, email, school)
 
     if result["success"]:
         flash("Your profile has been created. Please log in now")
@@ -79,14 +83,17 @@ def register():
         flash(result["message"])
         return redirect(url_for('register'))
 
-#route for logging in
 @app.route('/login/', methods=['GET','POST'])
 def login():
+    '''
+    Logs in existing users.
+    '''
     if request.method == "GET":
         return render_template('login.html',  page_title = 'login page')  # Show the login page
     
     username = request.form.get('username')
-    password = request.form.get('password')
+    password = request.form.get('password1')
+
     conn = dbi.connect()
     result = helper.getUserInfo(conn, username)
     if result is None:
@@ -111,6 +118,10 @@ def login():
     
 @app.route('/logout/')
 def logout():
+    '''
+    Logs a user out and removes session information.
+    '''
+    print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
     if 'username' in session:
         username = session['username']
         session.pop('username')
@@ -126,7 +137,7 @@ def logout():
 def recipeform():
     '''
     For GET: assumes that this is the first time a user is posting their recipe.
-    Displays our recipe form HTM (see templates folder) for them to fill out 
+    Displays our recipe form HTML (see templates folder) for them to fill out 
 
     For POST: collects the form information, inserts it into our SQL database,
     and displays it as a recipe post. Redirects users to the recipe post once it 
@@ -341,12 +352,15 @@ def updatepost(post_id):
         return redirect(url_for('recipepost', post_id=post_id))
 
 
-# Discover board --> GET render discover board page html, POST search    
-# this route uses a helper function to retrieve all posts in the database. This function also handles 
-# when users use the search bar and then uses another function to retrieve all post with the search key in the title
-# It also handles when users choose to filter the posts by tags and redirects the user to the select route. 
+
 @app.route('/discover', methods=['GET'])
 def discover():
+    '''
+    For GET: uses a helper function to retrieve all posts in the database. 
+    Also handles cases when users use the search bar. Uses another function to retrieve 
+    all post with the search key in the title. It also handles when users choose to 
+    filter the posts by tags and redirects the user to the select route. 
+    '''
     conn = dbi.connect()
     search_query = request.args.get('search')  # Search query from URL
     tag_filter = request.args.get('tag')       # Tag filter from URL
@@ -365,12 +379,14 @@ def discover():
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
         for row in retrieve_posts
     ]
-
     return render_template('discover.html', page_title="Discover Recipes", posts=posts)
     
-#Still integrated within the discover page ==> gets alls posts that have the selected tag the user choose to filter by
 @app.route('/select/<string:tag>', methods=['GET'])
 def select(tag):
+    '''
+    Still integrated within the discover page ==> gets all posts that 
+    have the selected tag the user choose to filter by
+    '''
     conn = dbi.connect()
     curs = dbi.dict_cursor(conn)
 
@@ -384,17 +400,20 @@ def select(tag):
     conn.close()
 
     return render_template('discover.html', page_title="Discover Page", posts=posts)
+
 #This is our profile route, it takes information from the session to form the front end. It does this by taking the 
 #the username in the session and then performing a query to retrieve all post made by that user .
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route('/profile/', methods=['GET', 'POST'])
 def profile():
     if request.method == 'GET':
+
         conn = dbi.connect()
         username = session.get('username')
         user_dict = helper.getUserInfo(conn, username)
         user = {
             'name': user_dict['name'],
-            'username': username
+            'username': username,
+            'school': user_dict['school']
         }
         user_recipes = helper.getRecipesByUser(conn, user_dict['uid'])
         #user_recipes = helper.get_posts(conn) # displays all post for now since posts are not linked to uid 
@@ -420,8 +439,6 @@ def like_post_route(pid):
         'action': action,  # 'liked' or 'unliked'
         'like_count': like_count  # The updated like count after toggling
     })
-
-
 
 if __name__ == '__main__':
     import sys, os

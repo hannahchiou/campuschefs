@@ -4,21 +4,36 @@
 {% endblock %}
 
 {% block main_content %}
-    <form id="register" method="POST" action="{{ url_for('register') }}">
-        <h2>Sign Up</h2>
-        
-        <label for="name">Name</label>
-        <input type="text" id="name" name="name" placeholder="Enter your first and last name" required>
+<form id="register" method="POST" action="{{ url_for('register') }}">
+    <h2>Sign Up</h2>
+    
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" placeholder="Enter your first and last name" required>
 
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" placeholder="Enter your username" required>
 
-        <label for="password1">Password</label>
-        <input type="text" id="password1" name="password1" placeholder="Enter your password" required>
+    <label for="email">Email</label>
+    <input type="text" id="email" name="email" placeholder="Enter your email" required>
 
-        <label for="password2">Confirm Password</label>
-        <input type="text" id="password2" name="password2" placeholder="Re-enter your password" required>
+    <label for="school">University or College</label>
+    <input type="text" id="school" name="school" placeholder="Enter the school you attend" required>
 
-        <p><input type="submit" value="Register"></p>
-    </form>
+    <label for="password1">Password</label>
+    <div class="password-container">
+        <input type="password" id="password1" name="password1" placeholder="Enter your password" required>
+        <i class="bi bi-eye-slash togglePassword"></i>
+    </div>
+
+    <label for="password2">Confirm Password</label>
+    <div class="password-container">
+        <input type="password" id="password2" name="password2" placeholder="Re-enter your password" required>
+        <i class="bi bi-eye-slash togglePassword"></i>
+    </div>
+
+    <p><input type="submit" value="Register"></p>
+</form>
+<script src="{{ url_for('static', filename='password.js') }}" defer></script>
+
+
 {% endblock %}
