@@ -78,18 +78,11 @@
                 </a>
             </h3>
             <img src="{{ post['cover_photo'] }}" alt="{{ post['title'] }} cover photo" class="recipe-img" />
+            <div id="like-button-container-{{ post['pid'] }}" class="like-button-container" data-uid="{{ session['uid'] }}">
+                <button id="like-button-{{ post['pid'] }}" onclick="likePost({{ post['pid'] }})">Like</button>
+            </div>
             
-            <!-- Like button with data attributes -->
-            <button class="like-btn" 
-                data-pid="{{ post['pid'] }}"
-                data-liked="{{ post['liked'] | default(False) | tojson | lower }}"
-                onclick="toggleLike({{ post['pid'] }}, {{ post['liked'] | default(False) | tojson | lower }})">
-                {% if post['liked'] %}
-                    ❤️ Liked ({{ post['like_count'] }})
-                {% else %}
-                    ♡ Like ({{ post['like_count'] }})
-                {% endif %}
-            </button>
+            
         </div>
         {% endfor %}
         {% else %}
@@ -97,6 +90,7 @@
         {% endif %}
     </div>
 
+    <script src="{{ url_for('static', filename='likes.js') }}"></script>
 
     <!-- Pagination (optional, if there are many posts) -->
     {% if posts.has_next %}

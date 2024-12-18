@@ -205,6 +205,7 @@ def recipepost(post_id):
         post_owner_id = post['uid']
         current_user = session.get('uid')
         ingredients = helper.getIngredients(conn, post_id)
+        comments = helper.getComments(conn, post_id)
 
         if not post: 
             flash('''The recipe you requested is not in the database.
@@ -228,9 +229,18 @@ def recipepost(post_id):
                                steps = post['steps'].split('\n'),
                                ingredients = ingredients,
                                photo_url = photo_url,
-                               is_owner = (current_user == post_owner_id))
+                               is_owner = (current_user == post_owner_id),
+                               comments=comments)
     
     if request.method == 'POST':
+        current_user = session.get('uid')
+        comment_text = request.form.get('comment_text')
+
+        # Add the comment if present
+        if comment_text:
+            helper.addComment(conn, post_id, current_user, comment_text)
+            flash("Your comment has been added!")
+
         response = request.form.get('submit')
         # check what the button chosen is
         if response == "update":
@@ -240,6 +250,9 @@ def recipepost(post_id):
             helper.deletePost(conn,post_id)
             flash('Your post has been successfully deleted.')
             return redirect(url_for('index'))
+        
+        # Ensure a return after POST handling (redirect back to the recipe post page)
+        return redirect(url_for('recipepost', post_id=post_id))
 
 @app.route('/updatepost/<post_id>/',methods = ['GET','POST'])
 def updatepost(post_id):
@@ -334,7 +347,21 @@ def discover():
         {k: (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in row.items()}
         for row in retrieve_posts
     ]
-    return render_template('discover.html', page_title="Discover Recipes", posts=posts)
+
+    # Fetch posts
+    if 'uid' not in session:  # Ensure the user is logged in
+        flash('Please log in to view the discover page.')
+        return redirect(url_for('login'))
+
+    curs = dbi.dict_cursor(conn)
+    
+    # Fetch all posts
+    curs.execute('SELECT pid, title, cover_photo, like_count FROM post')
+    posts = curs.fetchall()
+
+    # Pass the user's uid to the template
+    user_id = session['uid']
+    return render_template('discover.html', posts=posts, user_id=user_id)
     
 @app.route('/select/<string:tag>', methods=['GET'])
 def select(tag):
@@ -380,19 +407,39 @@ def profile():
     if request.method == 'POST':
         return redirect(url_for('logout'))
 
-@app.route('/like_post/<int:pid>', methods=['POST'])
-def like_post_route(pid):
-    uid = session.get('uid')  # Get current user ID
-    if not uid:
-        return jsonify({'error': 'User not logged in'}), 401
+@app.route('/like/<int:post_id>', methods=['GET', 'POST'])
+def like(post_id):
+    conn = dbi.connect()
 
-    conn = dbi.connect()  # Connect to the database
-    action, like_count = toggle_like(conn, uid, pid)  # Use helper function to toggle like status
+    if request.method == 'POST':
+        try:
+            data = request.get_json()  # Get the JSON body
+            uid = data['uid']  # Extract the uid from the JSON data
 
-    return jsonify({
-        'action': action,  # 'liked' or 'unliked'
-        'like_count': like_count  # The updated like count after toggling
-    })
+            if not uid:
+                return jsonify({'error': 'User ID not provided'}), 400
+
+            curs = dbi.dict_cursor(conn)
+            # Insert the like into the likes table (avoiding duplicates)
+            curs.execute('INSERT IGNORE INTO likes (uid, pid) VALUES (%s, %s)', [uid, post_id])
+
+            # Increment the like count in the post table
+            curs.execute('UPDATE post SET like_count = like_count + 1 WHERE pid = %s', [post_id])
+            conn.commit()
+
+            # Check if the like count was updated successfully
+            curs.execute('SELECT like_count FROM post WHERE pid = %s', [post_id])
+            result = curs.fetchone()
+            if result:
+                print(f"Updated like count: {result['like_count']}")  # Log the updated like count
+                return jsonify({'error': False, 'like_count': result['like_count']})
+            else:
+                return jsonify({'error': 'Post not found after update'}), 404
+
+        except Exception as e:
+            return jsonify({'error': True, 'message': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     import sys, os

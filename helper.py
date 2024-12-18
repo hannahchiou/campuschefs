@@ -244,6 +244,47 @@ def insert(conn,post_id):
                             measurement = measurement)
         index += 1
 
+def getComments(conn, post_id):
+    """
+    Fetches all comments for a given recipe post.
+    """
+    curs = dbi.dict_cursor(conn)
+    
+    # Fetch all comments for the given post
+    sql_comments = '''
+        SELECT c.comment_id, c.uid, c.content, u.username
+        FROM comment c
+        JOIN user u ON c.uid = u.uid
+        WHERE c.pid = %s
+        ORDER BY c.comment_id ASC;
+    '''
+    curs.execute(sql_comments, [post_id])
+    comments = curs.fetchall()
+
+    return comments
+
+
+def addComment(conn, post_id, user_id, content):
+    """
+    Adds a comment to a recipe post.
+    """
+    curs = dbi.cursor(conn)
+    
+    # Insert the comment into the comment table
+    sql_insert_comment = '''
+        INSERT INTO comment (uid, pid, content)
+        VALUES (%s, %s, %s)
+    '''
+    curs.execute(sql_insert_comment, [user_id, post_id, content])
+    conn.commit()
+    
+    # Get the ID of the newly inserted comment
+    comment_id = curs.lastrowid
+    
+    return comment_id  # Return the ID of the newly created comment
+
+
+
 if __name__ == '__main__':
     dbi.conf('campuschefs_db')
     conn = dbi.connect()

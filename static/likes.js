@@ -1,39 +1,27 @@
-/**
- * Toggles the like status for a given post and updates the UI accordingly.
- */
-function toggleLike(pid, currentStatus) {
-    var button = event.target;  // Get the clicked button
-    var liked = currentStatus;  // Get current like status from data attribute
-    liked = !liked;  // Toggle the status
+function likePost(postId) {
+    const button = document.getElementById(`like-button-${postId}`);
+    const buttonContainer = document.getElementById(`like-button-container-${postId}`);
+    const uid = buttonContainer.dataset.uid; // Get the correct UID for the post
 
-    // Send a POST request to the backend to toggle the like status
-    fetch(`/like_post/${pid}`, {
+    // Add the "liked" class to the button to indicate it has been liked
+    button.classList.add('liked');
+
+    fetch(`/like/${postId}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: uid }) // Ensure UID is sent in the body
     })
     .then(response => response.json())
     .then(data => {
-        if (data.error) {
-            alert(data.error);
-            return;
-        }
-
-        // Update the button's text and data-liked attribute
-        var likeCountText = liked ? `♡ Like (${data.like_count})` : `❤️ Liked (${data.like_count})`;
-        button.textContent = likeCountText;
-
-        // Update the color based on the new like status
-        button.setAttribute('data-liked', liked.toString());
-        if (liked) {
-            button.style.color = '#e74c3c';  // Red color for liked posts
+        if (!data.error) {
+            // Update the like count on the page after the POST request
+            const likeCountElement = document.getElementById(`like-count-${postId}`);
+            if (likeCountElement) {
+                likeCountElement.textContent = data.like_count;
+            }
         } else {
-            button.style.color = '#666';  // Default color for unliked posts
+            console.error(data.message || 'An error occurred');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert("An error occurred while updating the like status.");
-    });
+    .catch(error => console.error('Error:', error));
 }
