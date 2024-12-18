@@ -290,6 +290,72 @@ def addComment(conn, post_id, user_id, content):
     
     return comment_id  # Return the ID of the newly created comment
 
+def addLike(conn, uid, post_id):
+    """
+    Adds a like to the likes table, avoiding duplicates.
+    """
+    try:
+        curs = dbi.cursor(conn)
+        # Insert into likes table, ignoring duplicates
+        sql_add_like = '''
+            INSERT IGNORE INTO likes (uid, pid)
+            VALUES (%s, %s)
+        '''
+        curs.execute(sql_add_like, [uid, post_id])
+        conn.commit()
+    except Exception as e:
+        raise Exception(f"Error adding like: {e}")
+
+def incrementLikeCount(conn, post_id):
+    """
+    Increments the like count for a specific post.
+    """
+    try:
+        curs = dbi.cursor(conn)
+        # Increment the like count for the given post
+        sql_increment_like = '''
+            UPDATE post
+            SET like_count = like_count + 1
+            WHERE pid = %s
+        '''
+        curs.execute(sql_increment_like, [post_id])
+        conn.commit()
+
+        # Fetch the updated like count
+        sql_get_like_count = '''
+            SELECT like_count
+            FROM post
+            WHERE pid = %s
+        '''
+        curs.execute(sql_get_like_count, [post_id])
+        result = curs.fetchone()
+        if result:
+            return result[0]  # Return the updated like count
+        else:
+            raise Exception("Post not found after incrementing like count")
+    except Exception as e:
+        raise Exception(f"Error incrementing like count: {e}")
+
+def getLikeCount(conn, post_id):
+    """
+    Fetches the like count for a specific post.
+    """
+    try:
+        curs = dbi.dict_cursor(conn)
+        sql_get_like_count = '''
+            SELECT like_count
+            FROM post
+            WHERE pid = %s
+        '''
+        curs.execute(sql_get_like_count, [post_id])
+        result = curs.fetchone()
+        if result:
+            return result['like_count']
+        else:
+            raise Exception("Post not found")
+    except Exception as e:
+        raise Exception(f"Error fetching like count: {e}")
+
 
 
 if __name__ == '__main__':
