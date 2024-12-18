@@ -415,38 +415,28 @@ def profile():
     if request.method == 'POST':
         return redirect(url_for('logout'))
 
-@app.route('/like/<int:post_id>', methods=['GET', 'POST'])
+@app.route('/like/<int:post_id>', methods=['POST'])
 def like(post_id):
     conn = dbi.connect()
 
     if request.method == 'POST':
         try:
             data = request.get_json()  # Get the JSON body
-            uid = data['uid']  # Extract the uid from the JSON data
+            uid = data.get('uid')  # Extract the uid from the JSON data
 
             if not uid:
                 return jsonify({'error': 'User ID not provided'}), 400
 
-            curs = dbi.dict_cursor(conn)
-            # Insert the like into the likes table (avoiding duplicates)
-            curs.execute('INSERT IGNORE INTO likes (uid, pid) VALUES (%s, %s)', [uid, post_id])
+            # Add the like using the helper function
+            helper.addLike(conn, uid, post_id)
 
-            # Increment the like count in the post table
-            curs.execute('UPDATE post SET like_count = like_count + 1 WHERE pid = %s', [post_id])
-            conn.commit()
+            # Increment the like count for the post and fetch the updated count
+            updated_like_count = helper.incrementLikeCount(conn, post_id)
 
-            # Check if the like count was updated successfully
-            curs.execute('SELECT like_count FROM post WHERE pid = %s', [post_id])
-            result = curs.fetchone()
-            if result:
-                print(f"Updated like count: {result['like_count']}")  # Log the updated like count
-                return jsonify({'error': False, 'like_count': result['like_count']})
-            else:
-                return jsonify({'error': 'Post not found after update'}), 404
+            return jsonify({'error': False, 'like_count': updated_like_count})
 
         except Exception as e:
             return jsonify({'error': True, 'message': str(e)}), 500
-
 
 
 if __name__ == '__main__':
