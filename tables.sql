@@ -63,7 +63,7 @@ create table likes (
     pid int,
     primary key (uid, pid),
     foreign key (uid) references user(uid),
-    foreign key (pid) references post(pid) ON DELETE CASCADE
+    foreign key (pid) references post(pid) 
 );
 
 create table comment (
@@ -72,7 +72,7 @@ create table comment (
     pid int,
     content varchar(200),
     foreign key (uid) references user(uid),
-    foreign key (pid) references post(pid) ON DELETE CASCADE
+    foreign key (pid) references post(pid) 
 );
 
 create table board (

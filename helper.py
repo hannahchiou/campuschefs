@@ -102,12 +102,16 @@ def deletePost(conn, pid):
     associated with it (tables set up with CASCADE).
     '''
     curs = dbi.dict_cursor(conn)
-    sql = '''
-        DELETE FROM post
-        WHERE pid = %s
-    '''
-    curs.execute(sql, [pid])
-    conn.commit()  # Commit the deletion
+    
+    # First, delete associated likes for this post
+    curs.execute('DELETE FROM likes WHERE pid = %s', [pid])
+
+    # Then delete the comments
+    curs.execute('DELETE FROM comment WHERE pid = %s', [pid])
+    
+    # Then delete the post
+    curs.execute('DELETE FROM post WHERE pid = %s', [pid])
+    conn.commit()
 
 def deleteIngredients(conn,pid):
     '''
