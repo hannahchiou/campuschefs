@@ -111,7 +111,8 @@ def login():
         session['username'] = username
         session['uid'] = result['uid']
         session['logged_in'] = True
-        print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+        # print(f"Your username is: {session['username']}, and your UID is: {session['uid']}, and your login status is: {session['logged_in']}")
+        # session['visits'] = 1
         return redirect(url_for('index'))
     else: 
         flash('Login incorrect. Please try again or register')
@@ -204,7 +205,6 @@ def recipepost(post_id):
         post_owner_id = post['uid']
         current_user = session.get('uid')
         ingredients = helper.getIngredients(conn, post_id)
-        print(ingredients)
 
         if not post: 
             flash('''The recipe you requested is not in the database.

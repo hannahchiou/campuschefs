@@ -41,6 +41,7 @@ create table post (
     serving_size int,
     prep_time int, 
     cook_time int,
+    like_count int,
     total_time int,
     post_date datetime,
     text_descrip varchar(1000),

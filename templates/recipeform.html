@@ -37,80 +37,37 @@
 <label for="cook-time">Cook Time (minutes):</label>
 <input type="number" id="cook-time" name="cook-time" placeholder="Enter cook time" required>
 
-<!-- TO DO: Dynamically add rows using JS -->
-<p> <b>Ingredients and Measurements </b></p>
-    <table>
-        <tr>
-            <td>
-                <label for="quantity1">Quantity:</label>
-                <input type="number" id="quantity1" name="ingredients[0][quantity]" placeholder="Enter quantity" required>
-            </td>
-            <td>
-                <label for="measurement1">Measurement:</label>
-                <input type="text" id="measurement1" name="ingredients[0][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient1">Ingredient:</label>
-                <input type="text" id="ingredient1" name="ingredients[0][name]" placeholder="Enter ingredient" required>
-            </td>
-        </tr>
-        <!-- Row 2 -->
-        <tr>
-            <td>
-                <label for="quantity2">Quantity:</label>
-                <input type="number" id="quantity2" name="ingredients[1][quantity]" placeholder="Enter quantity" required>
-            </td>
-            <td>
-                <label for="measurement2">Measurement:</label>
-                <input type="text" id="measurement2" name="ingredients[1][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient2">Ingredient:</label>
-                <input type="text" id="ingredient2" name="ingredients[1][name]" placeholder="Enter ingredient" required>
-            </td>
-        </tr>
-        <!-- Row 3 -->
-        <tr>
-            <td>
-                <label for="quantity3">Quantity:</label>
-                <input type="number" id="quantity3" name="ingredients[2][quantity]" placeholder="Enter quantity">
-            </td>
-            <td>
-                <label for="measurement3">Measurement:</label>
-                <input type="text" id="measurement3" name="ingredients[2][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient3">Ingredient:</label>
-                <input type="text" id="ingredient3" name="ingredients[2][name]" placeholder="Enter ingredient">
-            </td>
-        </tr>
-        <!-- Row 4 -->
-        <tr>
-            <td>
-                <label for="quantity4">Quantity:</label>
-                <input type="number" id="quantity4" name="ingredients[3][quantity]" placeholder="Enter quantity">
-            </td>
-            <td>
-                <label for="measurement4">Measurement:</label>
-                <input type="text" id="measurement4" name="ingredients[3][measurement]" placeholder="Enter measurement">
-            </td>
-            <td>
-                <label for="ingredient4">Ingredient:</label>
-                <input type="text" id="ingredient4" name="ingredients[3][name]" placeholder="Enter ingredient">
-            </td>
-        </tr>
-    </table>
 
 <!-- Adding dynamically added rows for the ingredients using jss (ingredients.js) -->
-<!-- will be implemented in alpha version -->
-<!-- <button type="btn">Add Row</button>
-<script src="{{url_for('static', filename='ingredients.js')}}"></script> -->
+<!-- template for dynamically adding rows: -->
+<template id="row-template">
+    <tr>
+        <td>
+            <label>Quantity:</label>
+            <input name="quantity" type="number" placeholder="Enter quantity">
+        </td>
+        <td>
+            <label>Measurement:</label>
+            <input name="measurement" type="text" placeholder="Enter measurement">
+        </td>
+        <td>
+            <label>Ingredient:</label>
+            <input name="ingredient" type="text" placeholder="Enter ingredient">
+        </td>
+    </tr>
+</template>
 
-<script>
-    document.getElementById('btn')
-        .addEventListener( 'click', (e) => addrow(e));
-</script>
+<!-- provide designated place to display dynamically added rows -->
+<p> <b>Ingredients and Measurements </b></p>
+<table id="recipe">
+    <tbody>
+        <!-- new rows will be appended here -->
+    </tbody>
+</table>
 
+<button type="button" id="addRowBtn">Add Row</button>
+
+<script src="{{url_for('static', filename='ingredients.js')}}"></script> 
 
 <label for="steps"> Recipe steps</label>
 <p><i>Please number your steps and separate each step with a new line. </i></p>

@@ -46,13 +46,32 @@
 <label for="cook-time">Cook Time (minutes):</label>
 <input type="number" id="cook-time" name="cook-time" value="{{ cook_time }}" placeholder="Enter cook time" required>
 
+<!-- Template for Ingredients -->
+<template id="row-template">
+    <tr>
+        <td>
+            <label>Quantity:</label>
+            <input name="quantity" type="number" placeholder="Enter quantity">
+        </td>
+        <td>
+            <label>Measurement:</label>
+            <input name="measurement" type="text" placeholder="Enter measurement">
+        </td>
+        <td>
+            <label>Ingredient:</label>
+            <input name="ingredient" type="text" placeholder="Enter ingredient">
+        </td>
+    </tr>
+</template>
+
 <p><b>Ingredients and Measurements</b></p>
-<table>
+<table id="recipe">
+    <tbody>
     {% for ingredient in ingredients %}
     <tr>
         <td>
             <label for="quantity{{ loop.index0 }}">Quantity:</label>
-            <input type="number" id="quantity{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][quantity]" value="{{ ingredient['quantity'] }}" required>
+            <input type="number" id="quantity{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][quantity]" value="{{ ingredient['quantity'] }}">
         </td>
         <td>
             <label for="measurement{{ loop.index0 }}">Measurement:</label>
@@ -60,11 +79,15 @@
         </td>
         <td>
             <label for="ingredient{{ loop.index0 }}">Ingredient:</label>
-            <input type="text" id="ingredient{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][name]" value="{{ ingredient['name'] }}" required>
+            <input type="text" id="ingredient{{ loop.index0 }}" name="ingredients[{{ loop.index0 }}][name]" value="{{ ingredient['name'] }}">
         </td>
     </tr>
     {% endfor %}
+    </tbody>
 </table>
+
+
+<button type="button" id="addRowBtn">Add Row</button>
 
 <!-- Steps -->
 <label for="steps">Recipe steps</label>
@@ -118,6 +141,9 @@
 <p><input type="submit" value="Update my recipe"> </p>
 
 </form>
+
+<script src="{{url_for('static', filename='ingredients.js')}}"></script> 
+
 </section>
 
 {% endblock %}
