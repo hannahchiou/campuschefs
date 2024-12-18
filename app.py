@@ -157,16 +157,6 @@ def recipeform():
         # format into datetime format for inserting into database
         post_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Uploading our image and saving the photo url to be inserted 
-        # on the HTML page
-        file = request.files.get('cover-photo')
-        photo_url = None
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            photo_url = url_for('static', filename=f'uploads/{filename}')
-
         # Inserts the recipe if it is valid; gets the post id to render the post
         # in post form 
         last_insert = helper.insertRecipe(conn, 
