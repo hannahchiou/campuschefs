@@ -100,4 +100,24 @@
         {% endif %}
     </div>
 </div>
+ <!-- Liked recipes section -->
+ <div class="liked-recipes">
+    <h3>Liked Recipes</h3>
+    {% if liked_recipes %}
+    <div class="recipes-grid">
+        {% for liked_recipe in liked_recipes %}
+        <div class="recipe-card">
+            <img src="{{ liked_recipe.cover_photo }}" alt="{{ liked_recipe.title }}" class="recipe-img">
+            <div class="recipe-details">
+                <h4>{{ liked_recipe.title }}</h4>
+                <a href="{{ url_for('recipepost', post_id=liked_recipe.pid) }}" class="view-recipe-btn">View Recipe</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>You haven't liked any recipes yet. Explore and like some recipes!</p>
+    {% endif %}
+</div>
+</div>
 {% endblock %}
