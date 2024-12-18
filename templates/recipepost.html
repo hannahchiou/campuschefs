@@ -77,7 +77,8 @@
 
         {% if session.get('uid') %}
         <form method="POST">
-            <textarea name="comment_text" placeholder="Add a comment..." required></textarea>
+            <label for="comment_text">Post a Comment:</label>
+            <textarea id="comment_text" name="comment_text" placeholder="Add a comment..." required></textarea>
             <input type="submit" name="submit" value="comment">
         </form>
         {% else %}

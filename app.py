@@ -219,6 +219,7 @@ def recipepost(post_id):
         return render_template('recipepost.html',
                                username = helper.getUser_byID(conn,post['uid'])['username'],
                                title = post['title'],
+                               page_title = 'recipe post',
                                date = post['post_date'],
                                prep_time = post['prep_time'],
                                cook_time = post['cook_time'],
@@ -364,7 +365,7 @@ def discover():
     ]
     # Pass the user's uid to the template
     user_id = session['uid']
-    return render_template('discover.html', posts=posts, user_id=user_id)
+    return render_template('discover.html', posts=posts, user_id=user_id, page_title="Discover Page")
     
 @app.route('/select/<string:tag>', methods=['GET'])
 def select(tag):
